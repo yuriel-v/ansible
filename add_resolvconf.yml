@@ -1,6 +1,6 @@
 ---
 - name: Resolvconf replacement play
-  hosts: all
+  hosts: "!dns"
   gather_facts: no
   tasks:
     - name: Execute as root

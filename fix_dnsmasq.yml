@@ -1,0 +1,19 @@
+---
+- name: Fix dnsmasq configuration play
+  hosts: "!dns"
+  gather_facts: no
+  tasks:
+    - name: Template new configuration file
+      become: yes
+      template:
+        src: './templates/dnsmasq.conf.j2'
+        dest: '/etc/dnsmasq.conf'
+    
+    - name: Restart dnsmasq
+      changed_when: no
+      become: yes
+      systemd:
+        name: dnsmasq
+        enabled: yes
+        state: restarted
+...
