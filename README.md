@@ -2,8 +2,6 @@
 This is a repository of roles and playbooks used by Ansible in my own home's infrastructure. \
 More information on the infrastructure itself can be found [here](https://github.com/yuriel-v/Infrastructure).
 
----
-
 ## Roles
 
 ### global
@@ -13,7 +11,7 @@ Global provisioning role. Not much to it, just default configurations for all ma
 
 ### dev_master
 
-Provisioning role for a desktop development VM.
+Provisioning role for a desktop development VM. \
 [More information.](roles/dev_master/README.md)
 
 ### game_server
