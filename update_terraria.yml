@@ -5,14 +5,28 @@
     gs_type: terraria
     gs_install_zerotier: false
     gs_server_ip: update
-    gs_terraria_link: "https://terraria.org/system/dedicated_servers/archives/000/000/045/original/terraria-server-1422.zip"
   
   pre_tasks:
     - name: Load variables
       ignore_errors: yes
       include_vars:
-        file: "../private/{{ ansible_host }}_terraria-variables.yml"
+        file: "/home/vagrant/ansible/private/{{ ansible_host }}_terraria-variables.yml"
+
+    - name: Fetch install link
+      block:
+        - name: Find latest version install link
+          delegate_to: localhost
+          run_once: yes
+          shell: "links -source https://terraria.org/ | grep -i \"pc dedicated\" | head -n 1 | grep -o \"'.*'\" | grep -o \"[^']*\""
+          register: gs_terraria_linkdir
+          changed_when: no
+
+        - name: Put link together
+          set_fact:
+            gs_terraria_link: "https://terraria.org{{ hostvars['localhost']['gs_terraria_linkdir']['stdout'] }}"
 
   roles:
     - role: game_server
       become: yes
+      when: gs_terraria_link != gs_terraria_curlink
+...

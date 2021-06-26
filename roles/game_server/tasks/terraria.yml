@@ -165,8 +165,14 @@
     - name: Export configurations
       template:
         src: terraria-variables.yml.j2
-        dest: "/shared/global/private/{{ ansible_host }}_terraria-variables.yml"
+        dest: "{{ gs_terraria_install_dir }}/{{ ansible_host }}_terraria-variables.yml"
       become: yes
+
+    - name: Import configurations to controller
+      fetch:
+        src: "{{ gs_terraria_install_dir }}/{{ ansible_host }}_terraria-variables.yml"
+        dest: "/home/vagrant/ansible/private/"
+        fail_on_missing: no
       
 - name: Output server IP
   when: gs_server_ip != "update"
