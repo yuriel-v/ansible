@@ -3,8 +3,20 @@
   hosts: all
   vars:
     ansible_user: vagrant
-    ansible_ssh_private_key_file: '/home/vagrant/id_ansible'
     ansible_ssh_common_args: '-o StrictHostKeyChecking=no'
+  
+  pre_tasks:
+    - name: Add Ansible public key
+      vars:
+        ansible_ssh_pass: vagrant
+      authorized_key:
+        user: vagrant
+        state: present
+        key: "{{ lookup('file', '/home/vagrant/id_ansible.pub') }}"
+    
+    - name: Set Ansible to use the inserted key for the rest of the play
+      set_fact:
+        ansible_ssh_private_key_file: '/home/vagrant/id_ansible'
 
   roles:
     - role: global

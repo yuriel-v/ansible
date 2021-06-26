@@ -10,12 +10,9 @@
     ansible_ssh_common_args: '-o StrictHostKeyChecking=no'
 
   tasks:
-    - name: "Copy Ansible public key onto target"
-      copy:
-        src: "/home/vagrant/id_ansible.pub"
-        dest: "/home/vagrant/.ssh/id_ansible.pub"
-
-    - name: "Add key to authorized hosts"
-      shell: "cat /home/vagrant/.ssh/id_ansible.pub >> /home/vagrant/.ssh/authorized_keys"
-
+    - name: Add Ansible public key
+      authorized_key:
+        user: vagrant
+        state: present
+        key: "{{ lookup('file', '/home/vagrant/id_ansible.pub') }}"
 ...
