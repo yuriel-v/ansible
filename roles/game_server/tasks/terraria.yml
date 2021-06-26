@@ -172,8 +172,4 @@
         src: "{{ gs_terraria_install_dir }}/{{ ansible_host }}_terraria-variables.yml"
         dest: "/home/vagrant/ansible/private/"
         fail_on_missing: no
-      
-- name: Output server IP
-  when: gs_server_ip != "update"
-  debug:
-    msg: "This server's IP is set to {{ gs_server_ip }}"
+...
