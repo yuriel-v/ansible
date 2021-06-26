@@ -1,4 +1,4 @@
-# dev_base_ubuntu: Development environment base install, Ubuntu version
+# dev_master: Development environment base install, Ubuntu version
 
 This role provisions a development master machine, that is, a machine used to develop just about any kind of application you work with.
 By default, this role installs the following:
