@@ -3,7 +3,6 @@
   when: gs_terraria_link is not defined
   block:
     - name: Find latest version install link
-      delegate_to: localhost
       run_once: yes
       shell: "links -source https://terraria.org/ | grep -i \"pc dedicated\" | head -n 1 | grep -o \"'.*'\" | grep -o \"[^']*\""
       register: gs_terraria_linkdir
@@ -11,7 +10,7 @@
 
     - name: Put link together
       set_fact:
-        gs_terraria_link: "https://terraria.org{{ hostvars['localhost']['gs_terraria_linkdir']['stdout'] }}"
+        gs_terraria_link: "https://terraria.org{{ gs_terraria_linkdir['stdout'] }}"
 
 - name: Probe old installs
   stat:
