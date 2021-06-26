@@ -2,6 +2,9 @@
 - name: Insert Ansible public key onto host
   hosts: all
   vars:
+    # These are actually fine to put on git.
+    # The VMs are set to accept a password SSH only from the internal network.
+    # Any external SSHs must be performed by private key.
     ansible_ssh_pass: vagrant
     ansible_user: vagrant
     ansible_ssh_common_args: '-o StrictHostKeyChecking=no'
@@ -14,27 +17,5 @@
 
     - name: "Add key to authorized hosts"
       shell: "cat /home/vagrant/.ssh/id_ansible.pub >> /home/vagrant/.ssh/authorized_keys"
-
-- name: Global VM provisioning play
-  hosts: all
-  vars:
-    ansible_user: vagrant
-    ansible_ssh_private_key_file: '/home/vagrant/id_ansible'
-    ansible_ssh_common_args: '-o StrictHostKeyChecking=no'
-
-  roles:
-    - role: global
-      tags:
-        - general
-        - game-server
-    
-    - role: dev_master
-      tags: dev-master
-    
-    - role: mysql_install
-      tags: db-mysql
-
-    - role: game_server
-      tags: game-server
 
 ...

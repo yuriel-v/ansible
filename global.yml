@@ -1,0 +1,24 @@
+---
+- name: Global VM provisioning play
+  hosts: all
+  vars:
+    ansible_user: vagrant
+    ansible_ssh_private_key_file: '/home/vagrant/id_ansible'
+    ansible_ssh_common_args: '-o StrictHostKeyChecking=no'
+
+  roles:
+    - role: global
+      tags:
+        - general
+        - game-server
+    
+    - role: dev_master
+      tags: dev-master
+    
+    - role: mysql_install
+      tags: db-mysql
+
+    - role: game_server
+      tags: game-server
+
+...
