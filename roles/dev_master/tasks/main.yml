@@ -10,7 +10,7 @@
   block:
     - name: Make sure Desktop GUI packages are present and up to date
       apt:
-        name: 'xubuntu-desktop'
+        name: 'ubuntu-desktop'
         state: latest
 
     - name: Import add keys task
