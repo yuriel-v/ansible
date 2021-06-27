@@ -4,6 +4,11 @@
     name: x11vnc
     state: latest
 
+- name: Install net-tools
+  apt:
+    name: net-tools
+    state: latest
+
 - name: Creating default x11vnc password
   shell: x11vnc -storepasswd vagrant /etc/x11vnc.pass
   changed_when: no
