@@ -42,12 +42,16 @@
       loop:
         - 172.16.0.0/15
         - 192.168.0.0/24
+      loop_control:
+        loop_var: devinstall_vnc_network
     
     - name: '(UFW) Allow SSH only from internal networks'
       ufw:
         rule: allow
         port: ssh
-        src: '{{ devinstall_vnc_network }}'
+        src: '{{ devinstall_ssh_network }}'
       loop:
         - 172.16.0.0/15
         - 192.168.0.0/24
+      loop_control:
+        loop_var: devinstall_ssh_network
