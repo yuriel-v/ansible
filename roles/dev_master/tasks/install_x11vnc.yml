@@ -21,13 +21,13 @@
     enabled: yes
 
 - name: Configure UFW
-  notify: "Enable UFW"
   block:
     - name: '(UFW) Limit SSH connection rate'
       ufw:
         rule: limit
         port: ssh
         proto: tcp
+      notify: "Enable UFW"
     
     - name: '(UFW) Allow VNC only from internal networks'
       ufw:
