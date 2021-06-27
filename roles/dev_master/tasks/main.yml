@@ -18,6 +18,9 @@
 
     - name: Import install task
       import_tasks: 'install.yml'
+    
+    - name: Import x11vnc tasks
+      import_tasks: 'install_x11vnc.yml'
 
 - name: Install VS Code extensions
   when: "'code' in devinstall_packages['apt'] or 'vscode' in devinstall_packages['deb'].keys()"

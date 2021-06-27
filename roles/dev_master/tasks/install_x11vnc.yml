@@ -1,0 +1,48 @@
+---
+- name: Install x11vnc server
+  apt:
+    name: x11vnc
+    state: latest
+
+- name: Creating default x11vnc password
+  shell: x11vnc -storepasswd vagrant /etc/x11vnc.pass
+  changed_when: no
+
+- name: Templating x11vnc systemd service
+  template:
+    src: x11vnc.service.j2
+    dest: /etc/systemd/system/x11vnc.service
+
+- name: Starting and enabling x11vnc service
+  systemd:
+    daemon_reload: yes
+    name: x11vnc
+    state: started
+    enabled: yes
+
+- name: Configure UFW
+  notify: "Enable UFW"
+  block:
+    - name: '(UFW) Limit SSH connection rate'
+      ufw:
+        rule: limit
+        port: ssh
+        proto: tcp
+    
+    - name: '(UFW) Allow VNC only from internal networks'
+      ufw:
+        rule: allow
+        port: '5900'
+        src: '{{ devinstall_vnc_network }}'
+      loop:
+        - 172.16.0.0/15
+        - 192.168.0.0/24
+    
+    - name: '(UFW) Allow SSH only from internal networks'
+      ufw:
+        rule: allow
+        port: ssh
+        src: '{{ devinstall_vnc_network }}'
+      loop:
+        - 172.16.0.0/15
+        - 192.168.0.0/24

@@ -1,0 +1,7 @@
+---
+- name: "Enable UFW"
+  ufw:
+    state: enabled
+  async: 10
+  poll: 0
+...
