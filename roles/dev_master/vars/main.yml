@@ -10,6 +10,7 @@ devinstall_packages:
   apt:
     # essentials
     - firefox
+    - xrdp
     # java
     - adoptopenjdk-11-hotspot
     - maven

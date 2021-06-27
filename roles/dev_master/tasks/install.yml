@@ -18,4 +18,15 @@
   loop: "{{ devinstall_packages['deb'] | dict2items }}"
   loop_control:
     loop_var: devinstall_deb
+
+- name: Add xrdp user to ssl-cert group
+  user:
+    name: "xrdp"
+    group: "ssl-cert"
+    append: yes
+
+- name: Restart xrdp service
+  systemd:
+    name: xrdp
+    state: restarted
 ...
