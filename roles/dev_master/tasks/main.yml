@@ -8,6 +8,11 @@
   when: not devinstall_skiptovscode is defined or not devinstall_skiptovscode
   become: yes
   block:
+    - name: Make sure Desktop GUI packages are present and up to date
+      apt:
+        name: 'xubuntu-desktop'
+        state: latest
+
     - name: Import add keys task
       import_tasks: 'add_keys.yml'
 
