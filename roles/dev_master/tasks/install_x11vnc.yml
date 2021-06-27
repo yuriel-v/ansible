@@ -37,7 +37,7 @@
     - name: '(UFW) Allow VNC only from internal networks'
       ufw:
         rule: allow
-        port: '5900'
+        port: 5900:5901
         src: '{{ devinstall_vnc_network }}'
       loop:
         - 172.16.0.0/15
