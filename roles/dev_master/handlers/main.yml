@@ -4,4 +4,11 @@
     state: enabled
   async: 10
   poll: 0
+
+- name: "Reboot VM"
+  reboot:
+    pre_reboot_delay: 10
+  become: yes  
+  async: 10
+  poll: 0
 ...

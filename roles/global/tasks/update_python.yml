@@ -1,12 +1,21 @@
 ---
 - name: Probe current Python install
   shell: python3 --version
+  changed_when: no
   register: global_pyver
 
-- name: Update Python
-  vars:
+- name: Set current Python version integer
+  set_fact:
     global_python_version: "{{ global_pyver['stdout'].split()[-1] | regex_replace('\\.', '') | int }}"
-  when: global_python_version < global_python_latest
+  changed_when: no
+
+- name: Print variables
+  debug:
+    msg: "Cur = {{ global_python_version }} -- Upd = {{ global_python_latest }}"
+
+- name: Update Python
+  become: yes
+  when: global_python_version != global_python_latest
   block:
     - name: Install Python 3 dependencies
       package:

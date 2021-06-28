@@ -2,7 +2,7 @@
 # vars file for global_ubuntu
 
 global_python:
-  url: 'https://www.python.org/ftp/python/3.9.2/Python-3.9.2.tar.xz'
+  url: 'https://www.python.org/ftp/python/3.9.5/Python-3.9.5.tar.xz'
   dependencies:
     - zlib1g-dev
     - libncurses5-dev

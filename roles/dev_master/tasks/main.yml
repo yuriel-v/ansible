@@ -20,6 +20,9 @@
       import_tasks: 'install.yml'
     
     - name: Import x11vnc tasks
+      when:
+        - devinstall_x11vnc is defined
+        - devinstall_x11vnc == 'yes'
       import_tasks: 'install_x11vnc.yml'
 
 - name: Install VS Code extensions

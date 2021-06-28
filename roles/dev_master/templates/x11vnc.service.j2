@@ -4,7 +4,7 @@ Requires=display-manager.service
 After=display-manager.service
 
 [Service]
-ExecStart=/usr/bin/x11vnc -auth /run/user/1000/gdm/Xauthority -display :0  -forever -loop -noxdamage -repeat -rfbauth /etc/x11vnc.pass -rfbport 5900 -shared -o /var/log/x11vnc.log
+ExecStart=/usr/bin/x11vnc -xkb -env FD_XDM=1 -auth /run/user/1000/gdm/Xauthority  -forever -loop -noxfixes -noxdamage -repeat -rfbauth /etc/x11vnc.pass -rfbport 5900 -shared -o /var/log/x11vnc.log
 ExecStop=/usr/bin/killall x11vnc
 Restart=on-failure
 RestartSec=2

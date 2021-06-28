@@ -1,5 +1,7 @@
 - name: Install VS Code extensions
-  shell: 'code --install-extension {{ devinstall_vscode_extension }}'
+  shell: 'code --install-extension {{ devinstall_vscode_extension }} --force'
+  register: devinstall_vsc_ext_result
+  changed_when: not ("already installed" in devinstall_vsc_ext_result['stdout_lines'][-1])
   loop: "{{ devinstall_vscode_extensions }}"
   loop_control:
     loop_var: devinstall_vscode_extension
