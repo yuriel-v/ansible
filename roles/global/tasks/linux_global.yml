@@ -7,6 +7,10 @@
   loop_control:
     loop_var: global_lx_essential
 
+- name: Import VM aesthetic configuration tasks
+  import_tasks: 'vm_specs.yml'
+  become: yes
+
 #- name: Update Python install
 #  when:
 #    - global_update_python is defined

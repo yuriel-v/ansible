@@ -1,0 +1,31 @@
+#!/bin/bash
+
+# colors:
+# white: \e[97m
+# light gray: \e[37m
+# dark gray: \e[90m
+# cyan: \e[36m
+# reset: \e[0m
+
+read -r -d '' ynet_greeting << EOF
+\e[0m                                                            \e[96mii
+\e[96m                                                          ii  ii          ll
+          \e[97m=========\e[96m                                         ii            ll
+        \e[97m0\e[36m*****\e[33m|\e[31m.....\e[97m0\e[96m          yy    yy  uu    uu  rr  rrr        eeee    ll
+      \e[97m0\e[36m*******\e[33m|\e[31m.......\e[97m0\e[96m        yy    yy  uu    uu  rrrr     ii  ee    ee  ll
+    \e[97m0\e[36m*********\e[33m|\e[31m.........\e[97m0\e[96m      yy    yy  uu    uu  rr       ii  eeeeeeee  ll
+  \e[97m0\e[36m***********\e[33m|\e[31m...........\e[97m0\e[96m     yyyyyyy  uu    uu  rr       ii  ee        ll
+\e[97m||\e[36m************\e[33m|\e[31m............\e[97m||\e[96m        yy   uuuuuuu  rr       ii    eeeeee    ll
+\e[97m||\e[33m------------+------------\e[97m||\e[96m        yy
+\e[97m||\e[31m............\e[33m|\e[36m************\e[97m||\e[96m    yyyy                          tt
+  \e[97m0\e[31m...........\e[33m|\e[36m***********\e[97m0\e[96m              nnnnnnn     eeee      tt
+    \e[97m0\e[31m.........\e[33m|\e[36m*********\e[97m0\e[96m                nn    nn  ee    ee    tttttt
+      \e[97m0\e[31m.......\e[33m|\e[36m*******\e[97m0\e[96m                  nn    nn  eeeeeeee    tt
+        \e[97m0\e[31m.....\e[33m|\e[36m*****\e[97m0\e[96m                    nn    nn  ee          tt
+          \e[97m=========\e[96m                      nn    nn    eeeeee      tttt
+\e[0m
+yurielnet: Now using machine "{{ global_vm_shortname }}".\n
+EOF
+
+echo -e "$ynet_greeting"
+unset ynet_greeting
