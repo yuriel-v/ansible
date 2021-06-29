@@ -7,8 +7,22 @@
   loop_control:
     loop_var: global_lx_essential
 
-- name: Update Python install
-  when:
-    - global_update_python is defined
-    - global_update_python == "yes"
-  import_tasks: update_python.yml
+#- name: Update Python install
+#  when:
+#    - global_update_python is defined
+#    - global_update_python == "yes"
+#  import_tasks: update_python.yml
+
+# much simpler python update workaround
+- name: Install Python 3.9
+  become: yes
+  block:
+    - name: Fetch Python package
+      apt:
+        name: python3.9
+        state: latest
+
+    - name: Add Python alias to all users
+      lineinfile:
+        path: '/etc/bash.bashrc'
+        line: "alias python='/usr/bin/python3.9'"
