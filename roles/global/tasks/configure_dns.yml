@@ -1,0 +1,30 @@
+---
+- name: Install dnsmasq
+  package:
+    name: dnsmasq
+    state: "{{ 'latest' if 'ubuntu' in ansible_lsb['id'] | lower else 'present' }}"
+
+- name: Disable and stop systemd-resolved service
+  ignore_errors: yes
+  systemd:
+    name: systemd-resolved
+    enabled: no
+    state: stopped
+
+- name: Template DNS configuration files
+  template:
+    src: '{{ global_dns_config_file }}.j2'
+    dest: "/etc/{{ global_dns_config_file }}"
+  loop:
+    - dnsmasq.conf
+    - resolv.conf
+  loop_control:
+    loop_var: global_dns_config_file
+
+- name: Bounce dnsmasq service
+  changed_when: no
+  systemd:
+    name: dnsmasq
+    enabled: yes
+    state: restarted
+...

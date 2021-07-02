@@ -1,30 +1,47 @@
 ---
-- name: Resolvconf play
+- name: Resolvconf replacement play
   hosts: all
+  gather_facts: no
   tasks:
     - name: Execute as root
       become: yes
       block:
-        - name: Install resolvconf
+        - name: Install dnsmasq
           apt:
-            name: resolvconf
+            name: dnsmasq
             state: latest
 
-        - name: Enable and start resolvconf service
+        - name: Disable and stop resolvconf and systemd-resolved services
+          ignore_errors: yes
           systemd:
-            name: resolvconf.service
-            enabled: yes
-            state: started
-
-        - name: Insert entries into resolvconf head
-          lineinfile:
-            path: '/etc/resolvconf/resolv.conf.d/head'
-            line: "{{ item }}"
+            name: "{{ dns_service }}"
+            enabled: no
+            state: stopped
           loop:
-            - "search yuriel.net"
-            - "nameserver 172.16.0.30"
-            - "nameserver 172.16.0.31"
-            - "nameserver 8.8.8.8"
+            - resolvconf
+            - systemd-resolved
+          loop_control:
+            loop_var: dns_service
 
-        - name: Update changes
-          shell: "resolvconf --enable-updates && resolvconf -u"
+        - name: Uninstall resolvconf
+          apt:
+            name: resolvconf
+            state: absent
+          
+        - name: Template DNS configuration files
+          template:
+            src: './templates/{{ dns_config }}.j2'
+            dest: "/etc/{{ dns_config }}"
+          loop:
+            - dnsmasq.conf
+            - resolv.conf
+          loop_control:
+            loop_var: dns_config
+        
+        - name: Bounce dnsmasq service
+          changed_when: no
+          systemd:
+            name: dnsmasq
+            enabled: yes
+            state: restarted
+...
