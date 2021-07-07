@@ -1,0 +1,9 @@
+[Unit]
+Description=IPv6 disabling script
+After=network-online.target
+
+[Service]
+ExecStart=/bin/bash /etc/boot_scripts/disable-ipv6.sh
+
+[Install]
+WantedBy=multi-user.target

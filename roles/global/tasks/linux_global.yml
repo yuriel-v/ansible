@@ -14,6 +14,9 @@
   when: ('DNS' not in global_vm_shortname)
   import_tasks: 'configure_dns.yml'
 
+- name: Import IPv6 disable tasks
+  import_tasks: 'disable_ipv6.yml'
+
 # much simpler python update workaround
 - name: Install Python 3.9
   block:

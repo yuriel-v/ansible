@@ -1,0 +1,31 @@
+---
+- name: Add script to disable IPv6 on boot
+  hosts: all
+  gather_facts: no
+  tasks:
+    - name: Run play as root
+      become: yes
+      block:
+        - name: Create /etc/boot_scripts
+          file:
+            path: '/etc/boot_scripts'
+            state: directory
+        
+        - name: Template script to /etc/boot_scripts
+          template:
+            src: './templates/disable-ipv6.sh.j2'
+            dest: '/etc/boot_scripts/disable-ipv6.sh'
+        
+        - name: Add systemd service to run script on boot
+          template:
+            src: './templates/disable-ipv6.service.j2'
+            dest: '/etc/systemd/system/disable-ipv6.service'
+        
+        - name: Enable and run IPv6 removal service
+          changed_when: no
+          systemd:
+            name: 'disable-ipv6'
+            daemon_reload: yes
+            enabled: yes
+            state: started
+...
