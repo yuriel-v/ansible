@@ -9,6 +9,8 @@ By default, this role installs the following:
 - AdoptOpenJDK 11 Hotspot
 - Maven
 
+Optionally, x11vnc can be installed for VNC support, if needed.
+
 ## Requirements
 
 The only requirement is that the target OS must be Ubuntu.
