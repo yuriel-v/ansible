@@ -1,0 +1,28 @@
+---
+# tasks file for clone
+- name: Determine OS
+  import_tasks: 'parse_os.yml'
+
+- name: Do Linux routines
+  when: global_os == 'linux'
+  become: yes
+  block:
+    - name: "Template greeting to host"
+      template:
+        src: greeting.sh.j2
+        dest: '/etc/greeting.sh'
+        mode: '0755'
+
+    - name: "Set hostname"
+      hostname:
+        name: "{{ global_vm_hostname }}"
+
+    - name: "Set .bashrc for all users"
+      template:
+        src: bashrc.j2
+        dest: "{{ global_bashrc_path }}"
+      loop:
+        - '/etc/skel/.bashrc'
+        - '/home/vagrant/.bashrc'
+      loop_control:
+        loop_var: global_bashrc_path
