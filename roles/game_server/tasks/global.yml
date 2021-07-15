@@ -11,6 +11,7 @@
   block:
     # environment variables are a pain on linux for now, i'll stick to files
     - name: Look up variables from secrets
+      ignore_errors: yes
       include_vars:
         file: '../../../private/secrets.yml'
 
@@ -54,8 +55,8 @@
       changed_when: no
     
     - name: Join ZeroTier network specified in secrets
-      shell: "zerotier-one -q -j join {{ game_server['zt_network'] }}"
-      when: game_server['zt_network'] is defined
+      shell: "zerotier-one -q -j join {{ gs_zt_network }}"
+      when: gs_zt_network is defined
       become: yes
       changed_when: no
 
