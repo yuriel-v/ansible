@@ -1,13 +1,4 @@
 ---
-- name: Fetch install link
-  when: gs_terraria_link is not defined
-  block:
-    - name: Find latest version install link
-      run_once: yes
-      shell: 'links -source https://terraria.fandom.com/wiki/Server#Downloads | grep -o "[^\"]*pc-dedicated-server[^\"]*"'
-      register: gs_terraria_link
-      changed_when: no
-
 - name: Probe old installs
   stat:
     path: "{{ gs_terraria_install_dir }}"
@@ -18,7 +9,18 @@
     msg: "Existing Terraria install detected - either delete/move the folder at home/vagrant/terraria or set gs_overwrite to true to clean it up"
   when:
     - gs_terraria_old.stat.exists
-    - not gs_overwrite
+    - gs_overwrite == false
+
+- name: Fetch install link
+  when: gs_terraria_link is not defined
+  block:
+    - name: Find latest version install link
+      run_once: yes
+      retries: 5
+      delay: 3
+      shell: 'links -source https://terraria.fandom.com/wiki/Server#Downloads | grep -o "[^\"]*pc-dedicated-server[^\"]*"'
+      register: gs_terraria_link
+      changed_when: no
 
 - name: Ensure install folder is empty
   block:
