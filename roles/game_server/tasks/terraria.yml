@@ -166,6 +166,7 @@
     - name: Import configurations to controller
       fetch:
         src: "{{ gs_terraria_install_dir }}/{{ ansible_host }}_terraria-variables.yml"
-        dest: "/home/vagrant/ansible/private/"
+        dest: "/home/vagrant/ansible/private/{{ ansible_host }}_terraria-variables.yml"
         fail_on_missing: no
+        flat: yes
 ...

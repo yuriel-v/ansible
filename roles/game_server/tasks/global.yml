@@ -16,6 +16,8 @@
         file: '../../../private/secrets.yml'
 
     - name: Fetch ZeroTier git repository
+      retries: 5
+      delay: 3
       git:
         accept_hostkey: yes
         repo: 'https://github.com/zerotier/ZeroTierOne.git'
