@@ -1,13 +1,14 @@
 ---
 - name: Check for ZeroTier install
-  stat:
-    path: /usr/local/bin/zerotier-one
+  changed_when: no
+  failed_when: no
+  shell: 'which zerotier-one'
   register: gs_ztinstall
 
 - name: Install ZeroTier One
   when: 
     - gs_install_zerotier
-    - not gs_ztinstall.stat.exists
+    - gs_ztinstall['stdout'] == ''
   block:
     # environment variables are a pain on linux for now, i'll stick to files
     - name: Look up variables from secrets

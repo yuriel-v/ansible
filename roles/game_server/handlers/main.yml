@@ -1,7 +1,37 @@
 ---
 # handlers file for minecraft_server
+
+- name: UFW - SSH
+  become: yes
+  ufw:
+    rule: allow
+    port: ssh
+    proto: tcp
+  listen: 'Configure networking'
+
+- name: UFW - Game port
+  become: yes
+  ufw:
+    rule: allow
+    port: "{{ gs_port | string }}"
+    proto: tcp
+  listen: 'Configure networking'
+
+# module iptables is stupid and doesn't work
+- name: iptables - Game port
+  become: yes
+  shell: "iptables -A INPUT -p tcp --dport {{ gs_port }} -j ACCEPT"
+  listen: 'Configure networking'
+
+# BUG: Enabling UFW, be it here or through the shell module, hangs up the SSH session,
+# despite actually working and the rule allowing SSH.
+# I personally have no clue how to fix this, so what'll be done here will be that
+# enabling UFW should be run as an async handler at the very end of the playbook.
+# That way, it doesn't matter if the SSH session hangs up or not.
 - name: UFW - Enable
+  become: yes
   ufw:
     state: enabled
   async: 10
   poll: 0
+  listen: 'Configure networking'

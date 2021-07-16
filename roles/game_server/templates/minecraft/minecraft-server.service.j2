@@ -1,0 +1,23 @@
+[Unit]
+Description=Minecraft dedicated server service daemon
+After=network.target
+
+[Service]
+Type=oneshot
+User={{ gs_mc_user | default('vagrant') }}
+Group={{ gs_mc_group | default('vagrant') }}
+RemainAfterExit=true
+
+ExecStart=/usr/bin/bash {{ gs_mc_install_dir }}/minecraft.d/ServerStart.sh
+ExecStop=/usr/bin/bash {{ gs_mc_install_dir }}/minecraft.d/ServerStop.sh
+
+Restart=on-failure
+RestartSec=60s
+
+ProtectSystem=full
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+
+[Install]
+WantedBy=multi-user.target
