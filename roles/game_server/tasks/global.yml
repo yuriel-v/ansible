@@ -64,12 +64,14 @@
       changed_when: no
 
     - name: Fetch ZeroTier IP when available
+      when: gs_zt_network is defined
       copy:
         src: fetch-ip.sh
         dest: /tmp/fetch-ip.sh
         mode: '0777'
         
     - name: Launch background script for fetching ZeroTier IP
+      when: gs_zt_network is defined
       shell:
         cmd: nohup /tmp/fetch-ip.sh &
       become: yes
