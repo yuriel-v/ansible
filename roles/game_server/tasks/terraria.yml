@@ -59,39 +59,17 @@
         src: "/tmp/{{ gs_terraria_dir }}/Linux/"
         dest: "{{ gs_terraria_install_dir }}"
 
-- name: Configure networking
-  when: gs_server_ip != 'update'
-  become: yes
-  block:
-    - name: UFW - SSH
-      ufw:
-        rule: allow
-        port: ssh
-        proto: tcp
-
-    - name: UFW - Terraria port
-      ufw:
-        rule: allow
-        port: "{{ gs_terraria_port | string }}"
-        proto: tcp
-      notify: UFW - Enable
-    
-    # BUG: Enabling UFW, be it here or through the shell module, hangs up the SSH session,
-    # despite actually working and the rule allowing SSH.
-    # I personally have no clue how to fix this, so what'll be done here will be that
-    # enabling UFW should be run as an async handler at the very end of the playbook.
-    # That way, it doesn't matter if the SSH session hangs up or not.
-
-    # module iptables is stupid and doesn't work
-    - name: iptables - Terraria port
-      shell: "iptables -A INPUT -p tcp --dport {{ gs_terraria_port }} -j ACCEPT"
-
 - name: Template configurations and launch script
   block:
+    - name: Set Terraria port
+      set_fact:
+        gs_port: "{{ gs_port | default('7777') }}"
+  
     - name: Template configs
       template:
         src: terraria/terraria-config.txt.j2
         dest: "{{ gs_terraria_install_dir }}/config.txt"
+      notify: 'Configure networking'
     
     - name: Create terraria.d folder
       file:
@@ -102,9 +80,7 @@
       template:
         src: 'terraria/{{ gs_terrariad_template }}.sh.j2'
         dest: '{{ gs_terraria_install_dir }}/terraria.d/{{ gs_terrariad_template }}.sh'
-        mode: '0766'
-        owner: root
-        group: root
+        mode: '0777'
       loop:
         - launch
         - exit
@@ -116,7 +92,6 @@
         path: '{{ gs_terraria_install_dir }}/TerrariaServer.bin.x86_64'
         mode: '+x'
         state: file
-      become: yes
 
     - name: Template and start Terraria systemd service, if not updating
       when: gs_server_ip != 'update'
@@ -163,7 +138,6 @@
       template:
         src: terraria/terraria-variables.yml.j2
         dest: "{{ gs_terraria_install_dir }}/{{ ansible_host }}_terraria-variables.yml"
-      become: yes
 
     - name: Import configurations to controller
       fetch:
