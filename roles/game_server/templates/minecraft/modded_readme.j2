@@ -1,0 +1,16 @@
+Hi there. Ansible noticed that you're probably not installing a vanilla server.
+That's fine. Just keep a few things in mind:
+
+- **The ServerStart.sh script will need adjustments to point to the modded/plugin server jar!**
+  - Simply put, the recommended is to move all the server's files into '{{ gs_mc_install_dir }}' if they're not there already.
+  - Once that's done, on the last line of ServerStart.sh, change 'server.jar' to the name of the .jar file to launch your server with.
+  - For Forge-based mods/modpacks, that's usually 'forge-<mc ver>-<forge ver>.jar'.
+  - If in doubt, check your install's README file!
+  - Also feel free to edit the '-Xms' and '-Xmx' values to use the amount of RAM you wish. By default, Ansible defines this as 4G.
+
+- The server was added as a systemd service already, but it hasn't been activated, and shouldn't be until ServerStart.sh has been fixed.
+  - Run the commands 'sudo systemctl daemon-reload' and then 'sudo systemctl start minecraft-server' to start it.
+  - To enable it on boot, run 'sudo systemctl enable minecraft-server'.
+  - To view the console window, type 'tmux attach -t mc'.
+
+That's it for now. Good luck and happy modding!

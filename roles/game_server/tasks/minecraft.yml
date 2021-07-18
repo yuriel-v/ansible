@@ -39,9 +39,11 @@
         name: "*jdk*"
         state: absent
     
-    - name: Install Java Runtime Environment 16
+    - name: Install Java Runtime Environment
+      vars:
+        gs_mc_is_vanilla: "{{ gs_mc_link is not defined or (gs_mc_link.startswith('https://launcher.mojang.com')) }}"
       apt:
-        name: adoptopenjdk-16-openj9-jre
+        name: "adoptopenjdk-{{ '16' if gs_mc_is_vanilla else '11' }}-openj9-jre"
         state: present
 
 - name: Install Minecraft dedicated server
@@ -104,6 +106,34 @@
         dest: "{{ gs_mc_install_dir }}/server.properties"
       notify: 'Configure networking'
     
+    - name: Make sure minecraft.d directory is present
+      file:
+        path: "{{ gs_mc_install_dir }}/minecraft.d"
+        state: directory
+
+    - name: Template start and stop scripts
+      template:
+        src: "minecraft/Server{{ gs_mc_ctlscript }}.sh.j2"
+        dest: "{{ gs_mc_install_dir }}/minecraft.d/Server{{ gs_mc_ctlscript }}.sh"
+        mode: '0755'
+      loop:
+        - Start
+        - Stop
+      loop_control:
+        loop_var: gs_mc_ctlscript
+    
+    - name: Template info message
+      when: not gs_mc_link.startswith('https://launcher.mojang.com')
+      template:
+        src: "minecraft/modded_readme.j2"
+        dest: "{{ gs_mc_install_dir }}/server_instructions.md"
+        
+    - name: Template minecraft-server systemd service
+      become: yes
+      template:
+        src: "minecraft/minecraft-server.service.j2"
+        dest: "/etc/systemd/system/minecraft-server.service"
+    
     # The following only makes sense and is only a sure-fire way
     # if the server you're installing is a vanilla one.
     #
@@ -115,36 +145,12 @@
     # server as a systemd service to be started on boot. None of this
     # however, guarantees that your server will automatically restart
     # after a crash!
-
-    - name: Do systemd service tasks if server is vanilla
+        
+    - name: Run minecraft-server systemd service
       when: gs_mc_link.startswith('https://launcher.mojang.com')
-      block:
-        - name: Make sure minecraft.d directory is present
-          file:
-            path: "{{ gs_mc_install_dir }}/minecraft.d"
-            state: directory
-
-        - name: Template start and stop scripts
-          template:
-            src: "minecraft/Server{{ gs_mc_ctlscript }}.sh.j2"
-            dest: "{{ gs_mc_install_dir }}/minecraft.d/Server{{ gs_mc_ctlscript }}.sh"
-            mode: '0755'
-          loop:
-            - Start
-            - Stop
-          loop_control:
-            loop_var: gs_mc_ctlscript
-        
-        - name: Template minecraft-server systemd service
-          become: yes
-          template:
-            src: "minecraft/minecraft-server.service.j2"
-            dest: "/etc/systemd/system/minecraft-server.service"
-        
-        - name: Run minecraft-server systemd service
-          become: yes
-          systemd:
-            name: 'minecraft-server'
-            enabled: yes
-            state: started
+      become: yes
+      systemd:
+        name: 'minecraft-server'
+        enabled: yes
+        state: started
 ...

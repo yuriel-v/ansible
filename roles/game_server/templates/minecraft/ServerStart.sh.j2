@@ -3,4 +3,4 @@
 # Uses tmux, obviously
 
 tmux new-session -d -c {{ gs_mc_install_dir }} -s mc \
-"java -jar -Xms{{ gs_mc_ram | default('4G') }} -Xmx{{ gs_mc_ram | default('4G') }} server.jar nogui"
+"java -jar -Xms{{ gs_mc_ram | default('4G') }} -Xmx{{ gs_mc_ram | default('4G') }} server.jar nogui | tee launch-`date +%Y%m%d%H%M%S`.log 2>&1"
