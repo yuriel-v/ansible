@@ -9,6 +9,10 @@
   roles:
     - role: global
       tags:
+        - template-vm
+
+    - role: clone 
+      tags:
         - general
         - game-server
     

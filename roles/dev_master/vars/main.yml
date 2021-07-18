@@ -1,5 +1,5 @@
 ---
-devinstall_codename: "{{ hostvars[inventory_hostname]['ansible_lsb']['codename'] | default('Undefined!') }}"
+devinstall_codename: "{{ ansible_lsb['codename'] | default('Undefined!') }}"
 
 devinstall_repos:
   adoptopenjdk:

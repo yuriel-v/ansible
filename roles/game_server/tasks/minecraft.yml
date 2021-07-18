@@ -1,0 +1,160 @@
+---
+- name: Probe Minecraft install
+  stat:
+    path: "{{ gs_mc_install_dir }}"
+  register: gs_mc_installation  
+
+- name: Probe Java install
+  changed_when: no
+  failed_when: gs_mc_jvers.rc not in [0, 127]
+  shell: "java --version"
+  register: gs_mc_jvers
+
+- name: Set Java version fact
+  set_fact:
+    gs_mc_java: "{{ 'Undefined' if gs_mc_jvers.rc == 127 else gs_mc_jvers['stdout_lines'][0] | regex_search(\" [^ ' ']*\") | trim }}"
+
+- name: Add AdoptOpenJDK repos when applicable
+  when: gs_mc_jvers.rc == 127
+  become: yes
+  block:
+    - name: Add AdoptOpenJDK GPG key
+      apt_key:
+        url: 'https://adoptopenjdk.jfrog.io/adoptopenjdk/api/gpg/key/public'
+        state: present
+    
+    - name: Add AdoptOpenJDK Repository
+      apt_repository:
+        repo: "deb https://adoptopenjdk.jfrog.io/adoptopenjdk/deb {{ ansible_lsb['codename'] }} main"
+        filename: 'adoptopenjdk'
+        update_cache: yes
+
+- name: Install Java 16
+  when: not gs_mc_java.startswith('16')
+  become: yes
+  block:
+    - name: Remove old Java installs
+      when: gs_mc_java != 'Undefined'
+      apt:
+        name: "*jdk*"
+        state: absent
+    
+    - name: Install Java Runtime Environment
+      vars:
+        gs_mc_is_vanilla: "{{ gs_mc_link is not defined or (gs_mc_link.startswith('https://launcher.mojang.com')) }}"
+      apt:
+        name: "adoptopenjdk-{{ '16' if gs_mc_is_vanilla else '11' }}-openj9-jre"
+        state: present
+
+- name: Install Minecraft dedicated server
+  when: gs_overwrite != false or not gs_mc_installation.stat.exists
+  block:
+    - name: Move installation safely elsewhere
+      become: yes
+      when:
+        - gs_overwrite == 'soft'
+        - gs_mc_installation.stat.exists
+      # no "move" module, so shell it is
+      shell: "mv {{ gs_mc_install_dir }} {{ gs_mc_install_dir }}_old_{{ ansible_date_time['iso8601'] | regex_replace(':', '.') }}"
+
+    - name: Make sure installation folder doesn't exist
+      file:
+        path: "{{ gs_mc_install_dir }}"
+        state: absent
+
+    - name: Make sure installation folder exists again
+      file:
+        path: "{{ gs_mc_install_dir }}"
+        state: directory
+    
+    - name: Fetch install link, if applicable
+      when: gs_mc_link is not defined
+      block:
+        - name: Fetch install link
+          changed_when: no
+          retries: 5
+          delay: 3
+          shell: "links -source https://www.minecraft.net/en-us/download/server | grep -o '[^\"]*server\\.jar'"
+          register: gs_mc_link_shell
+        
+        - name: Set install link straight
+          set_fact:
+            gs_mc_link: "{{ gs_mc_link_shell['stdout'] }}"
+    
+    - name: Decompress dedicated server install, if applicable
+      when: not gs_mc_link.endswith('jar')
+      unarchive:
+        remote_src: yes
+        src: "{{ gs_mc_link }}"
+        dest: "{{ gs_mc_install_dir }}"
+    
+    - name: Download server .jar, if applicable
+      when: gs_mc_link.endswith('jar')
+      get_url:
+        url: "{{ gs_mc_link }}"
+        dest: "{{ gs_mc_install_dir }}/{{ gs_mc_link | basename }}"
+        mode: '0755'
+    
+    - name: Agree to the EULA automagically
+      copy:
+        content: 'eula=true'
+        dest: "{{ gs_mc_install_dir }}/eula.txt"
+
+    - name: Set Minecraft port
+      set_fact:
+        gs_port: "{{ gs_port | default('25565') }}"
+    
+    - name: Template server configurations
+      template:
+        src: "minecraft/server.properties.j2"
+        dest: "{{ gs_mc_install_dir }}/server.properties"
+      notify: 'Configure networking'
+    
+    - name: Make sure minecraft.d directory is present
+      file:
+        path: "{{ gs_mc_install_dir }}/minecraft.d"
+        state: directory
+
+    - name: Template start and stop scripts
+      template:
+        src: "minecraft/Server{{ gs_mc_ctlscript }}.sh.j2"
+        dest: "{{ gs_mc_install_dir }}/minecraft.d/Server{{ gs_mc_ctlscript }}.sh"
+        mode: '0755'
+      loop:
+        - Start
+        - Stop
+      loop_control:
+        loop_var: gs_mc_ctlscript
+    
+    - name: Template info message
+      when: not gs_mc_link.startswith('https://launcher.mojang.com')
+      template:
+        src: "minecraft/modded_readme.j2"
+        dest: "{{ gs_mc_install_dir }}/server_instructions.md"
+        
+    - name: Template minecraft-server systemd service
+      become: yes
+      template:
+        src: "minecraft/minecraft-server.service.j2"
+        dest: "/etc/systemd/system/minecraft-server.service"
+    
+    # The following only makes sense and is only a sure-fire way
+    # if the server you're installing is a vanilla one.
+    #
+    # Still not sure how plugin-based servers would work, and modded
+    # servers have a myriad different ways to install, so I'll leave
+    # that task to the server manager.
+    #
+    # The following should provide some guidelines on how to add your
+    # server as a systemd service to be started on boot. None of this
+    # however, guarantees that your server will automatically restart
+    # after a crash!
+        
+    - name: Run minecraft-server systemd service
+      when: gs_mc_link.startswith('https://launcher.mojang.com')
+      become: yes
+      systemd:
+        name: 'minecraft-server'
+        enabled: yes
+        state: started
+...

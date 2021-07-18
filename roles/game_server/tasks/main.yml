@@ -1,20 +1,17 @@
 ---
 - name: Include global tasks
-  import_tasks: global.yml
   become: yes
+  import_tasks: global.yml
 
 - name: Include Terraria server tasks
-  import_tasks: terraria.yml
-  become: yes
-  when: (gs_type | lower == "terraria")
+  when: (gs_game | lower == "terraria")
+  include_tasks: terraria.yml
 
-# TODO
 - name: Include Minecraft server tasks
-  import_tasks: minecraft.yml
-  become: yes
-  when: no #(gs_type | lower == "minecraft")
+  when: (gs_game | lower == "minecraft")
+  include_tasks: minecraft.yml
 
-- name: Include Starbound server tasks
-  import_tasks: starbound.yml
-  become: yes
-  when: no #(gs_type | lower == "starbound")
+# - name: Include Starbound server tasks
+#   import_tasks: starbound.yml
+#   become: yes
+#   when: (gs_game | lower == "starbound")
