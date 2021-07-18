@@ -4,145 +4,146 @@
     path: "{{ gs_terraria_install_dir }}"
   register: gs_terraria_old
 
-- name: Fail on existing install if not in overwrite mode
-  fail:
-    msg: "Existing Terraria install detected - either delete/move the folder at home/vagrant/terraria or set gs_overwrite to true to clean it up"
-  when:
-    - gs_terraria_old.stat.exists
-    - gs_overwrite == false
-
-- name: Fetch install link
-  when: gs_terraria_link is not defined
+- name: Do Terraria dedicated server install
+  when: gs_overwrite != false or not gs_terraria_old.stat.exists
   block:
-    - name: Find latest version install link
-      run_once: yes
-      retries: 5
-      delay: 3
-      shell: 'links -source https://terraria.fandom.com/wiki/Server#Downloads | grep -o "[^\"]*pc-dedicated-server[^\"]*"'
-      register: gs_terraria_link
-      changed_when: no
+    - name: Fetch install link
+      when: gs_terraria_link is not defined
+      block:
+        - name: Find latest version install link
+          run_once: yes
+          retries: 5
+          delay: 3
+          shell: 'links -source https://terraria.fandom.com/wiki/Server#Downloads | grep -o "[^\"]*pc-dedicated-server[^\"]*"'
+          register: gs_terraria_link
+          changed_when: no
 
-- name: Ensure install folder is empty
-  block:
-    - name: Delete old install
+    - name: Safely move old install elsewhere
+      become: yes
+      when:
+        - gs_terraria_old.stat.exists
+        - gs_overwrite == 'soft'
+      shell: "mv {{ gs_terraria_install_dir }} {{ gs_terraria_install_dir }}_old_{{ ansible_date_time['iso8601'] | regex_replace(':', '.') }}"
+
+    - name: Make sure install directory does not exist
       file:
         path: "{{ gs_terraria_install_dir }}"
         state: absent
-    
-    - name: Create empty install folder
+
+    - name: Make sure install directory exists again
       file:
         path: "{{ gs_terraria_install_dir }}"
         state: directory
 
-- name: Set up Terraria dedicated server
-  block:
-    - name: Ensure prerequisites are present
-      package:
-        name: "{{ gs_terraria_prerequisite }}"
-        state: present
-      loop:
-        - tmux
-        - ufw
-      loop_control:
-        loop_var: gs_terraria_prerequisite
-
-    - name: Download and extract dedicated server files
-      unarchive:
-        remote_src: yes
-        src: "{{ gs_terraria_link['stdout'] }}"
-        dest: /tmp
-        validate_certs: no
-    
-    - name: Move Linux files to install folder
-      copy:
-        remote_src: yes
-        src: "/tmp/{{ gs_terraria_dir }}/Linux/"
-        dest: "{{ gs_terraria_install_dir }}"
-
-- name: Template configurations and launch script
-  block:
-    - name: Set Terraria port
-      set_fact:
-        gs_port: "{{ gs_port | default('7777') }}"
-  
-    - name: Template configs
-      template:
-        src: terraria/terraria-config.txt.j2
-        dest: "{{ gs_terraria_install_dir }}/config.txt"
-      notify: 'Configure networking'
-    
-    - name: Create terraria.d folder
-      file:
-        path: '{{ gs_terraria_install_dir }}/terraria.d'
-        state: directory
-    
-    - name: Template service launch and exit scripts
-      template:
-        src: 'terraria/{{ gs_terrariad_template }}.sh.j2'
-        dest: '{{ gs_terraria_install_dir }}/terraria.d/{{ gs_terrariad_template }}.sh'
-        mode: '0777'
-      loop:
-        - launch
-        - exit
-      loop_control:
-        loop_var: gs_terrariad_template
-
-    - name: Set mode +x for Terraria server binaries
-      file:
-        path: '{{ gs_terraria_install_dir }}/TerrariaServer.bin.x86_64'
-        mode: '+x'
-        state: file
-
-    - name: Template and start Terraria systemd service, if not updating
-      when: gs_server_ip != 'update'
+    - name: Set up Terraria dedicated server
       block:
-        - name: Template Terraria systemd service
-          template:
-            src: terraria/terraria.service.j2
-            dest: /etc/systemd/system/terraria.service
-          become: yes
+        - name: Ensure prerequisites are present
+          package:
+            name: "{{ gs_terraria_prerequisite }}"
+            state: present
+          loop:
+            - tmux
+            - ufw
+          loop_control:
+            loop_var: gs_terraria_prerequisite
 
-        - name: Start Terraria systemd service
-          systemd:
-            daemon_reload: yes
-            enabled: yes
-            state: started
-            name: terraria.service
-          become: yes
-    
-    - name: In case of update, break and rebuild the glass-- I mean, the service
-      when: gs_server_ip == 'update'
-      block:
-        - name: Stop Terraria service
-          systemd:
-            daemon_reload: yes
-            enabled: yes
-            state: stopped
-            name: terraria.service
-          become: yes
-
-        - name: Sleep for 10 seconds to allow server to close
-          wait_for:
-            timeout: 10
-          delegate_to: localhost
+        - name: Download and extract dedicated server files
+          unarchive:
+            remote_src: yes
+            src: "{{ gs_terraria_link['stdout'] }}"
+            dest: /tmp
+            validate_certs: no
         
-        - name: Start Terraria service again
-          systemd:
-            daemon_reload: yes
-            enabled: yes
-            state: started
-            name: terraria.service
-          become: yes
-    
-    - name: Export configurations
-      template:
-        src: terraria/terraria-variables.yml.j2
-        dest: "{{ gs_terraria_install_dir }}/{{ ansible_host }}_terraria-variables.yml"
+        - name: Move Linux files to install folder
+          copy:
+            remote_src: yes
+            src: "/tmp/{{ gs_terraria_dir }}/Linux/"
+            dest: "{{ gs_terraria_install_dir }}"
 
-    - name: Import configurations to controller
-      fetch:
-        src: "{{ gs_terraria_install_dir }}/{{ ansible_host }}_terraria-variables.yml"
-        dest: "/home/vagrant/ansible/private/{{ ansible_host }}_terraria-variables.yml"
-        fail_on_missing: no
-        flat: yes
+    - name: Template configurations and launch script
+      block:
+        - name: Set Terraria port
+          set_fact:
+            gs_port: "{{ gs_port | default('7777') }}"
+      
+        - name: Template configs
+          template:
+            src: terraria/terraria-config.txt.j2
+            dest: "{{ gs_terraria_install_dir }}/config.txt"
+          notify: 'Configure networking'
+        
+        - name: Create terraria.d folder
+          file:
+            path: '{{ gs_terraria_install_dir }}/terraria.d'
+            state: directory
+        
+        - name: Template service launch and exit scripts
+          template:
+            src: 'terraria/{{ gs_terrariad_template }}.sh.j2'
+            dest: '{{ gs_terraria_install_dir }}/terraria.d/{{ gs_terrariad_template }}.sh'
+            mode: '0777'
+          loop:
+            - launch
+            - exit
+          loop_control:
+            loop_var: gs_terrariad_template
+
+        - name: Set mode +x for Terraria server binaries
+          file:
+            path: '{{ gs_terraria_install_dir }}/TerrariaServer.bin.x86_64'
+            mode: '+x'
+            state: file
+
+        - name: Template and start Terraria systemd service, if not updating
+          when: gs_server_ip != 'update'
+          block:
+            - name: Template Terraria systemd service
+              template:
+                src: terraria/terraria.service.j2
+                dest: /etc/systemd/system/terraria.service
+              become: yes
+
+            - name: Start Terraria systemd service
+              systemd:
+                daemon_reload: yes
+                enabled: yes
+                state: started
+                name: terraria.service
+              become: yes
+        
+        - name: In case of update, break and rebuild the glass-- I mean, the service
+          when: gs_server_ip == 'update'
+          block:
+            - name: Stop Terraria service
+              systemd:
+                daemon_reload: yes
+                enabled: yes
+                state: stopped
+                name: terraria.service
+              become: yes
+
+            - name: Sleep for 10 seconds to allow server to close
+              wait_for:
+                timeout: 10
+              delegate_to: localhost
+            
+            - name: Start Terraria service again
+              systemd:
+                daemon_reload: yes
+                enabled: yes
+                state: started
+                name: terraria.service
+              become: yes
+        
+        - name: Export configurations
+          template:
+            src: terraria/terraria-variables.yml.j2
+            dest: "{{ gs_terraria_install_dir }}/{{ ansible_host }}_terraria-variables.yml"
+
+        - name: Import configurations to controller
+          fetch:
+            src: "{{ gs_terraria_install_dir }}/{{ ansible_host }}_terraria-variables.yml"
+            dest: "/home/vagrant/ansible/private/{{ ansible_host }}_terraria-variables.yml"
+            fail_on_missing: no
+            flat: yes
 ...

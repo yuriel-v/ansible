@@ -49,19 +49,23 @@
 - name: Install Minecraft dedicated server
   when: gs_overwrite != false or not gs_mc_installation.stat.exists
   block:
-    - name: Copy installation safely elsewhere
+    - name: Move installation safely elsewhere
       become: yes
       when:
         - gs_overwrite == 'soft'
         - gs_mc_installation.stat.exists
       # no "move" module, so shell it is
       shell: "mv {{ gs_mc_install_dir }} {{ gs_mc_install_dir }}_old_{{ ansible_date_time['iso8601'] | regex_replace(':', '.') }}"
-    
-    - name: Make sure installation folder exists
+
+    - name: Make sure installation folder doesn't exist
+      file:
+        path: "{{ gs_mc_install_dir }}"
+        state: absent
+
+    - name: Make sure installation folder exists again
       file:
         path: "{{ gs_mc_install_dir }}"
         state: directory
-        mode: '0777'
     
     - name: Fetch install link, if applicable
       when: gs_mc_link is not defined
