@@ -1,0 +1,59 @@
+---
+# tasks file for dns_server
+- name: Install Bind 9
+  become: yes
+  retries: 3
+  delay: 3
+  package:
+    name: "{{ dns_server_package }}"
+    state: present
+
+  loop: "{{ dns_server_packages }}"
+  loop_control:
+    loop_var: dns_server_package
+
+
+- name: Disable IPv6 all around
+  become: yes
+  block:
+    - name: Add -4 option to /etc/defaults/named
+      lineinfile:
+        line: ' -4'
+        insertafter: 'OPTIONS.*bind'
+    
+    - name: 'Comment "listen-on-v6" option in named.conf.options'
+      lineinfile:
+        line: '//'
+        insertbefore: 'listen-on-v6'
+    
+    - name: 'Add filter AAAA on v4 = yes to named.conf.options'
+      lineinfile:
+        line: "        filter-aaaa-on-v4 yes;\n"
+        insertbefore: '^};$'
+  notify: 'Restart BIND9 service'
+
+
+- name: Configure master instance
+  when: dns_server_type == 'master'
+  become: yes
+  block:
+    - name: Make sure reverse dir exists
+      file:
+        path: '/etc/bind/reverse'
+        state: directory
+
+    - name: Template primary records file
+      template:
+        src: 'primary-records.j2'
+        dest: '/etc/bind/db.{{ dns_server_zone }}'
+    
+    - name: Template reverse records file
+      template:
+        src: 'ptr-records.j2'
+        dest: '/etc/bind/reverse/reverse.{{ dns_server_zone }}'
+    
+    - name: Template master zone file
+      template:
+        src: 'named.conf.local.j2'
+        dest: '/etc/bind/named.conf.local'
+  notify: 'Restart BIND9 service'

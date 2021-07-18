@@ -1,0 +1,18 @@
+;
+; BIND data file for local loopback interface
+;
+$TTL 10800
+{{ dns_server_zone }}.     IN      SOA     {{ dns_server_master_ns_name }}{{ dns_server_zone }}. hostmaster.{{ dns_server_zone }}. (
+                                   {{ ansible_date_time['date'] | regex_replace('-', '') }}01      ; Serial (YYYYMMDD##)
+                                   {{ dns_server_refresh | default(86400) }}         ; Refresh (default 24H)
+                                   {{ dns_server_retry | default(7200) }}          ; Retry (default 2H)
+                                   {{ dns_server_expire | default (108000) }}         ; Expire (default 30D)
+                                   {{ dns_server_minttl | default(172800) }} )       ; Minimum TTL (default 2D)
+;
+
+; Nameserver
+
+{{ dns_server_zone }}.    IN    NS    {{ dns_server_master_ns_name }}{{ dns_server_zone }}.
+{% for record in dns_server_records %}
+{{ record['domain'] }}    {{ record['ttl'] }}    IN    {{ record['type'] }}    {{ record['address'] }}
+{% endfor %}

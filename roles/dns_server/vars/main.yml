@@ -1,0 +1,11 @@
+---
+# vars file for dns_server
+
+dns_server_packages:
+  - bind9-dnsutils
+  - bind9-doc
+  - bind9-host
+  - bind9-libs
+  - bind9-utils
+  - bind9
+  - bind9utils
