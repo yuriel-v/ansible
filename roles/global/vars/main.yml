@@ -25,3 +25,4 @@ global_linux_essentials:
   - iptables
   - ufw
   - tmux
+  - sshpass
