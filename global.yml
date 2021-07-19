@@ -15,6 +15,11 @@
       tags:
         - general
         - game-server
+        - dns-server
+        - dev-master
+    
+    - role: dns_server
+      tags: dns-server
     
     - role: dev_master
       tags: dev-master

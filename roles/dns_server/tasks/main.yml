@@ -18,11 +18,13 @@
   block:
     - name: Add -4 option to /etc/defaults/named
       lineinfile:
+        path: '/etc/defaults/named'
         line: ' -4'
         insertafter: 'OPTIONS.*bind'
     
     - name: 'Comment "listen-on-v6" option in named.conf.options'
       lineinfile:
+        path: '/etc/bind/named.conf.options'
         line: '//'
         insertbefore: 'listen-on-v6'
     
@@ -30,7 +32,6 @@
       lineinfile:
         line: "        filter-aaaa-on-v4 yes;\n"
         insertbefore: '^};$'
-  notify: 'Restart BIND9 service'
 
 
 - name: Configure master instance
@@ -56,4 +57,11 @@
       template:
         src: 'named.conf.local.j2'
         dest: '/etc/bind/named.conf.local'
-  notify: 'Restart BIND9 service'
+
+
+- name: Restart BIND9 service
+  service:
+    name: bind9
+    state: restarted
+    enabled: yes
+    
