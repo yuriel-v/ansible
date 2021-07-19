@@ -2,19 +2,8 @@
 - name: "Template greeting to host"
   template:
     src: greeting.sh.j2
-    dest: '/etc/greeting.sh'
+    dest: '/etc/update-motd.d/99-greeting'
     mode: '0755'
-
-- name: "Add greeting execution line to profiles"
-  lineinfile:
-    line: "/bin/bash /etc/greeting.sh"
-    path: "{{ global_profile_path }}"
-    create: yes
-  loop:
-    - "/etc/skel/.profile"
-    - "/home/vagrant/.profile"
-  loop_control:
-    loop_var: global_profile_path
 
 - name: "Set hostname"
   hostname:
