@@ -1,11 +1,5 @@
 ---
 # tasks file for dns_server
-- name: Make sure dnsmasq is absent
-  become: yes
-  package:
-    name: dnsmasq
-    state: absent
-
 - name: Install BIND 9
   become: yes
   retries: 3
@@ -17,6 +11,13 @@
   loop: "{{ dns_server_packages }}"
   loop_control:
     loop_var: dns_server_package
+
+
+- name: Make sure dnsmasq is absent
+  become: yes
+  package:
+    name: dnsmasq
+    state: absent
 
 
 - name: Disable IPv6 all around
@@ -39,6 +40,21 @@
         path: '/etc/bind/named.conf.options'
         line: "        filter-aaaa-on-v4 yes;"
         insertbefore: '^};$'
+
+
+- name: Configure slave instance
+  when: dns_server_type == 'slave'
+  become: yes
+  block:
+    - name: Template slave zone file
+      template:
+        src: 'slave-config.j2'
+        dest: '/var/lib/bind/slave.{{ dns_server_zone }}'
+    
+    - name: Add include to named.conf.local
+      lineinfile:
+        path: '/etc/bind/named.conf.local'
+        line: 'include "/var/lib/bind/slave.{{ dns_server_zone }}";'
 
 
 - name: Configure master instance
@@ -72,5 +88,4 @@
     name: bind9
     state: restarted
     enabled: yes
-    use: 'service'
   changed_when: no 
