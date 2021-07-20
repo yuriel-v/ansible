@@ -3,7 +3,7 @@
 ;
 $TTL 10800
 {{ dns_server_reverse_zone }}.     IN      SOA     {{ dns_server_master_ns_name }}{{ dns_server_zone }}. hostmaster.{{ dns_server_zone }}. (
-                                   {{ ansible_date_time['date'] | regex_replace('-', '') }}01      ; Serial (YYYYMMDD##)
+                                   {{ ansible_date_time['date'] | regex_replace('-', '') }}02      ; Serial (YYYYMMDD##)
                                    {{ dns_server_refresh | default(86400) }}         ; Refresh (default 24H)
                                    {{ dns_server_retry | default(7200) }}          ; Retry (default 2H)
                                    {{ dns_server_expire | default (108000) }}         ; Expire (default 30D)

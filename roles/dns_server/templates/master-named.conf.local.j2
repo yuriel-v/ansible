@@ -13,7 +13,7 @@ zone "{{ dns_server_zone }}" IN {
 };
 
 // Reverse zone
-zone "{{ dns_server_ptr_zone }}" IN {
+zone "{{ dns_server_reverse_zone }}" IN {
   type master;
   file "/etc/bind/reverse/reverse.{{ dns_server_zone }}";
 };

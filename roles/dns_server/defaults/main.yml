@@ -2,32 +2,28 @@
 # defaults file for dns_server
 dns_server_type: 'slave'
 dns_server_zone: 'yuriel.net'
-dns_server_ptr_zone: '0.16.172.in-addr.arpa'
+dns_server_reverse_zone: '0.16.172.in-addr.arpa'
 dns_server_master_ns_name: 'ns1'
 
 # Default records for yurielnet, as defined in the repo https://github.com/yuriel-v/Infrastructure
 # Make sure to override this when implementing your own DNS records!
 dns_server_records:
-  - secondary_dns:
-      domain: 'yuriel.net.'
-      ttl: ''
-      type: NS
-      address: 'ns2.yuriel.net.'
+  - domain: 'yuriel.net.'
+    ttl: ''
+    type: NS
+    address: 'ns2.yuriel.net.'
 
-  - ns2:
-      domain: ns2
-      ttl: '86400'
-      type: A
-      address: '172.16.0.31'
+  - domain: ns2
+    ttl: '86400'
+    type: A
+    address: '172.16.0.31'
 
-  - ansible:
-      domain: ansible
-      ttl: '86400'
-      type: A
-      address: '172.16.0.100'
+  - domain: ansible
+    ttl: '86400'
+    type: A
+    address: '172.16.0.100'
   
-  - esxi:
-      domain: esxi
-      ttl: '86400'
-      type: A
-      address: '192.168.0.100'
+  - domain: esxi
+    ttl: '86400'
+    type: A
+    address: '192.168.0.100'

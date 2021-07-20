@@ -1,6 +1,12 @@
 ---
 # tasks file for dns_server
-- name: Install Bind 9
+- name: Make sure dnsmasq is absent
+  become: yes
+  package:
+    name: dnsmasq
+    state: absent
+
+- name: Install BIND 9
   become: yes
   retries: 3
   delay: 3
@@ -18,7 +24,7 @@
   block:
     - name: Add -4 option to /etc/defaults/named
       lineinfile:
-        path: '/etc/defaults/named'
+        path: '/etc/default/named'
         line: ' -4'
         insertafter: 'OPTIONS.*bind'
     
@@ -30,7 +36,8 @@
     
     - name: 'Add filter AAAA on v4 = yes to named.conf.options'
       lineinfile:
-        line: "        filter-aaaa-on-v4 yes;\n"
+        path: '/etc/bind/named.conf.options'
+        line: "        filter-aaaa-on-v4 yes;"
         insertbefore: '^};$'
 
 
@@ -55,13 +62,15 @@
     
     - name: Template master zone file
       template:
-        src: 'named.conf.local.j2'
+        src: 'master-named.conf.local.j2'
         dest: '/etc/bind/named.conf.local'
 
 
 - name: Restart BIND9 service
+  become: yes
   service:
     name: bind9
     state: restarted
     enabled: yes
-    
+    use: 'service'
+  changed_when: no 
