@@ -1,0 +1,91 @@
+---
+# tasks file for dns_server
+- name: Install BIND 9
+  become: yes
+  retries: 3
+  delay: 3
+  package:
+    name: "{{ dns_server_package }}"
+    state: present
+
+  loop: "{{ dns_server_packages }}"
+  loop_control:
+    loop_var: dns_server_package
+
+
+- name: Make sure dnsmasq is absent
+  become: yes
+  package:
+    name: dnsmasq
+    state: absent
+
+
+- name: Disable IPv6 all around
+  become: yes
+  block:
+    - name: Add -4 option to /etc/defaults/named
+      lineinfile:
+        path: '/etc/default/named'
+        line: ' -4'
+        insertafter: 'OPTIONS.*bind'
+    
+    - name: 'Comment "listen-on-v6" option in named.conf.options'
+      lineinfile:
+        path: '/etc/bind/named.conf.options'
+        line: '//'
+        insertbefore: 'listen-on-v6'
+    
+    - name: 'Add filter AAAA on v4 = yes to named.conf.options'
+      lineinfile:
+        path: '/etc/bind/named.conf.options'
+        line: "        filter-aaaa-on-v4 yes;"
+        insertbefore: '^};$'
+
+
+- name: Configure slave instance
+  when: dns_server_type == 'slave'
+  become: yes
+  block:
+    - name: Template slave zone file
+      template:
+        src: 'slave-config.j2'
+        dest: '/var/lib/bind/slave.{{ dns_server_zone }}'
+    
+    - name: Add include to named.conf.local
+      lineinfile:
+        path: '/etc/bind/named.conf.local'
+        line: 'include "/var/lib/bind/slave.{{ dns_server_zone }}";'
+
+
+- name: Configure master instance
+  when: dns_server_type == 'master'
+  become: yes
+  block:
+    - name: Make sure reverse dir exists
+      file:
+        path: '/etc/bind/reverse'
+        state: directory
+
+    - name: Template primary records file
+      template:
+        src: 'primary-records.j2'
+        dest: '/etc/bind/db.{{ dns_server_zone }}'
+    
+    - name: Template reverse records file
+      template:
+        src: 'ptr-records.j2'
+        dest: '/etc/bind/reverse/reverse.{{ dns_server_zone }}'
+    
+    - name: Template master zone file
+      template:
+        src: 'master-named.conf.local.j2'
+        dest: '/etc/bind/named.conf.local'
+
+
+- name: Restart BIND9 service
+  become: yes
+  service:
+    name: bind9
+    state: restarted
+    enabled: yes
+  changed_when: no 

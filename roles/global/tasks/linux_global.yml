@@ -14,8 +14,20 @@
   when: ('DNS' not in global_vm_shortname)
   import_tasks: 'configure_dns.yml'
 
-- name: Import IPv6 disable tasks
-  import_tasks: 'disable_ipv6.yml'
+#- name: Import IPv6 disable tasks
+#  import_tasks: 'disable_ipv6.yml'
+
+- name: Disable IPv6 for good
+  become: yes
+  replace:
+    dest: '/etc/default/grub'
+    replace: '\1 ipv6.disable=1'
+    regexp: '^(GRUB_CMDLINE_LINUX_DEFAULT="[^"]*)'
+
+- name: Update grub
+  become: yes
+  shell: 'update-grub'
+  changed_when: no
 
 # much simpler python update workaround
 - name: Install Python 3.9
