@@ -1,0 +1,10 @@
+interface=`ip addr | grep -o '^2: [^:]*' | grep -o "[^' ']*$"`
+
+echo "Releasing lease on interface $interface"
+dhclient -r $interface
+
+echo "Removing lease cache"
+rm /var/lib/dhcp/dhclient.leases
+
+echo "Requesting new IP for interface $interface"
+dhclient $interface

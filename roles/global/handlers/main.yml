@@ -1,2 +1,5 @@
 ---
 # handlers file for global_ubuntu
+- name: 'Regenerate IP in 5 seconds'
+  become: yes
+  shell: 'sleep 5 && systemctl start regen-dhcp'

@@ -14,8 +14,35 @@
   when: ('DNS' not in global_vm_shortname)
   import_tasks: 'configure_dns.yml'
 
-#- name: Import IPv6 disable tasks
-#  import_tasks: 'disable_ipv6.yml'
+
+- name: Make sure /etc/boot_scripts exists
+  become: yes
+  file:
+    path: '/etc/boot_scripts'
+
+
+- name: 'Template IP regeneration (DHCP) script for interface #2 to /etc/boot_scripts'
+  become: yes
+  template:
+    src: 'regen-dhcp.sh.j2'
+    dest: '/etc/boot_scripts/regen-dhcp.sh'
+    mode: '0755'
+
+
+- name: 'Template IP regeneration as a systemd service'
+  become: yes
+  template:
+    src: 'regen-dhcp.service.j2'
+    dest: '/etc/systemd/system/regen-dhcp.service'
+  notify: 'Regenerate IP in 5 seconds'
+
+
+- name: Enable IP regeneration service on boot
+  become: yes
+  service:
+    name: regen-dhcp
+    enabled: yes
+
 
 - name: Disable IPv6 for good
   become: yes

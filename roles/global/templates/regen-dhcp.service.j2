@@ -1,0 +1,11 @@
+[Unit]
+Description=Regenerates IP address for interface number 2 through DHCP
+After=network.target
+
+[Service]
+Type=simple
+User=root
+ExecStart=/usr/bin/bash /etc/boot_scripts/regen-dhcp.sh
+
+[Install]
+WantedBy=multi-user.target
