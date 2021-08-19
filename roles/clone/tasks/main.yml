@@ -26,3 +26,19 @@
         - '/home/vagrant/.bashrc'
       loop_control:
         loop_var: global_bashrc_path
+
+    - name: "Set .bashrc for root user"
+      vars:
+        devinstall_bashrc_user: 'root'
+      template:
+        src: bashrc.j2
+        dest: '/root/.bashrc'
+   
+    - name: Warn user about long task
+      debug:
+        msg: "Warning: Ansible will now update apt cache and upgrade all the packages it can. This might take a while!"
+
+    - name: Update apt cache and upgrade all packages
+      apt:
+        upgrade: 'safe'
+        update_cache: yes
