@@ -11,6 +11,7 @@ devinstall_packages:
     # essentials
     - firefox
     - vagrant
+    - remmina
     # java
     - adoptopenjdk-11-hotspot
     - maven

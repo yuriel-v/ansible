@@ -1,0 +1,35 @@
+Hello. Yuriel here.
+
+This file will guide you on setting up your environment if you're using XRDP to RDP into this virtual machine.
+
+As you might have noticed, some things are out of place (no desktop icons, no dock, windows only have the close button), so this document will serve to guide you into re-enabling these features.
+
+The software needed has already been installed, which is dconf-editor and gnome tweak tools. More info on what to do on each software as follows:
+
+- Gnome tweak tools
+  - This tool is labeled simply "Tweaks" on the applications menu!
+  - Appearance:
+    - Choose the theme "Yaru" (or Yaru-dark if you prefer a dark theme) for applications, cursor, icons and sound.
+  - Extensions:
+    - Enable everything (desktop icons, dock and appindicators).
+  - Any further configurations, feel free to tweak them.
+
+- dconf-editor
+  - This tool is labeled "dconf Editor" on the applications menu.
+  - Navigate to org/gnome/shell/extensions/dash-to-dock
+  - Mark the following:
+    - dock-fixed
+    - extend-height
+  - Navigate to org/gnome/desktop/wm/preferences
+  - Click button-layout
+  - Uncheck "Use default value"
+  - For the custom value (default should be "appmenu:close"), input the following string instead:
+    - appmenu:minimize,maximize,close
+  - Click the green check button to apply settings
+    - Keep in mind that, in that string, elements are comma-separated, and the colon dictates where elements will go.
+    - For instance, "appmenu:close" displays an app menu on the left and a close button on the right.
+    - Elements will appear in the order they are written, obviously.
+
+All done! Any further modifications are yours to make, but this should provide an environment similar to what we have ona local session. You might still get a password prompt for a few things later though, like unlocking the gnome keyring. I will look into this.
+
+- Yuriel

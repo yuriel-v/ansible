@@ -1,0 +1,115 @@
+---
+- name: Do VNC tasks
+  when: devinstall_remdesk | lower == 'vnc'
+  block:
+    - name: Install x11vnc server
+      apt:
+        name: x11vnc
+        state: latest
+
+    - name: Install net-tools
+      apt:
+        name: net-tools
+        state: latest
+
+    - name: Create default x11vnc password
+      shell: x11vnc -storepasswd vagrant /etc/x11vnc.pass
+      changed_when: no
+
+    - name: Template x11vnc systemd service
+      template:
+        src: x11vnc.service.j2
+        dest: /etc/systemd/system/x11vnc.service
+
+    - name: Start and enabling x11vnc service
+      systemd:
+        daemon_reload: yes
+        name: x11vnc
+        state: started
+        enabled: yes
+
+
+    - name: Calculate VESA CVT mode lines for 1920x984
+      shell: "cvt 1920 984 | tail -n 1 | cut -d ' ' -f 2-"
+      changed_when: no
+      register: devinstall_display_cvt
+
+    - name: Add new mode creation/addition to vagrant profile
+      lineinfile:
+        path: "/home/vagrant/.profile"
+        line: "xrandr {{ devinstall_display_line }}"
+
+      loop:
+        - "--newmode {{ devinstall_display_cvt['stdout'] }} > /dev/null 2>&1"
+        - "--addmode Virtual1 {{ devinstall_display_cvt['stdout'].split()[0] }} > /dev/null 2>&1"
+      loop_control:
+        loop_var: devinstall_display_line
+
+
+- name: Do RDP tasks
+  when: devinstall_remdesk | lower == 'rdp'
+  block:
+    - name: Install XRDP
+      apt:
+        name: 'xrdp'
+        state: present
+
+    - name: Add xrdp user to ssl-cert group
+      user:
+        name: 'xrdp'
+        groups: 'ssl-cert'
+        append: yes
+
+    - name: Template colord allowing configurations
+      template:
+        src: 'xrdp_allow_colord.j2'
+        dest: '/etc/polkit-1/localauthority/50-local.d/45-allow-colord.pkla'
+
+    - name: Bounce and enable XRDP service
+      systemd:
+        name: 'xrdp'
+        state: restarted
+        enabled: yes
+
+    - name: Install Gnome tweak tool and dconf editor
+      apt:
+        name: ['gnome-tweak-tool', 'dconf-editor']
+        state: present
+
+    - name: Template finishing touch instructions to vagrant home
+      template:
+        src: 'xrdp_finishing_touches.j2'
+        dest: '/home/vagrant/readme-finishing-touches.md'
+
+
+- name: Configure UFW
+  block:
+    - name: '(UFW) Limit SSH connection rate'
+      ufw:
+        rule: limit
+        port: ssh
+        proto: tcp
+      notify: "Enable UFW"
+    
+    - name: '(UFW) Allow VNC/RDP only from internal networks'
+      ufw:
+        rule: allow
+        port: '{{ "5900:5901" if devinstall_remdesk | lower == "vnc" else "3389" }}'
+        proto: tcp
+        src: '{{ devinstall_remdesk_network }}'
+      loop:
+        - 172.16.0.0/15
+        - 192.168.0.0/24
+      loop_control:
+        loop_var: devinstall_remdesk_network
+    
+    - name: '(UFW) Allow SSH only from internal networks'
+      ufw:
+        rule: allow
+        port: ssh
+        src: '{{ devinstall_ssh_network }}'
+      loop:
+        - 172.16.0.0/15
+        - 192.168.0.0/24
+      loop_control:
+        loop_var: devinstall_ssh_network

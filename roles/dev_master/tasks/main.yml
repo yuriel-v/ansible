@@ -8,9 +8,13 @@
   when: not devinstall_skiptovscode is defined or not devinstall_skiptovscode
   become: yes
   block:
+    - name: Warn user about long setup
+      debug:
+        msg: 'Warning: Ansible will now install Desktop packages. This will take a while!'
+ 
     - name: Make sure Desktop GUI packages are present and up to date
       apt:
-        name: 'ubuntu-desktop'
+        name: 'ubuntu-desktop-minimal'
         state: latest
 
     - name: Import add keys task
@@ -19,11 +23,8 @@
     - name: Import install task
       import_tasks: 'install.yml'
     
-    - name: Import x11vnc tasks
-      when:
-        - devinstall_x11vnc is defined
-        - devinstall_x11vnc == 'yes'
-      import_tasks: 'install_x11vnc.yml'
+    - name: Import remote desktop tasks
+      import_tasks: 'install_remdesk.yml'
 
 - name: Install VS Code extensions
   when: "'code' in devinstall_packages['apt'] or 'vscode' in devinstall_packages['deb'].keys()"
