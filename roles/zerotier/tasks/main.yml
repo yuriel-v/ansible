@@ -1,0 +1,64 @@
+---
+# tasks file for zerotier
+- name: Check for ZeroTier install
+  changed_when: no
+  failed_when: no
+  shell: 'which zerotier-one'
+  register: zt_install
+
+
+- name: Tell user ZeroTier is already installed
+  when: zt_install['stdout'] != ''
+  debug:
+    msg: "ZeroTier is already installed, Ansible will not reinstall it. Location: {{ zt_install['stdout'] }}"
+
+
+- name: Install ZeroTier One
+  when: zt_install['stdout'] == ''
+  block:
+    - name: Fetch ZeroTier git repository
+      retries: 5
+      delay: 3
+      git:
+        accept_hostkey: yes
+        repo: 'https://github.com/zerotier/ZeroTierOne.git'
+        dest: '/tmp/ZeroTierOne'
+
+    - name: Build ZeroTier from source
+      make:
+        chdir: '/tmp/ZeroTierOne'
+
+    - name: Install ZeroTier binaries
+      become: yes
+      make:
+        chdir: '/tmp/ZeroTierOne'
+        target: install
+    
+    - name: Determine ZeroTier install
+      changed_when: no
+      shell: which zerotier-one
+      register: zt_which
+    
+    - name: Add ZeroTier One as systemd service
+      become: yes
+      template:
+        src: zerotier.service.j2
+        dest: /etc/systemd/system/zerotier.service
+    
+    - name: Start ZeroTier service
+      become: yes
+      systemd:
+        daemon_reload: yes
+        enabled: yes
+        state: started
+        name: zerotier.service
+    
+    - name: Generate ZeroTier identity
+      changed_when: no
+      shell: "zerotier-one -i generate"
+    
+    - name: Join ZeroTier network specified in secrets
+      when: zt_network is defined
+      become: yes
+      changed_when: no
+      shell: "zerotier-one -q -j join {{ zt_network }}"

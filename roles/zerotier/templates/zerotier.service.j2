@@ -5,7 +5,7 @@ Description=ZeroTier One Service Daemon
 Type=forking
 User=root
 KillMode=none
-ExecStart={{ gs_zt_which['stdout_lines'][0] }} -d
+ExecStart={{ zt_which['stdout_lines'][0] }} -d
 
 [Install]
 WantedBy=multi-user.target
