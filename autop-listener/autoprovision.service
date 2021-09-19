@@ -1,0 +1,18 @@
+[Unit]
+Description=Autoprovision Flask API daemon
+
+[Service]
+Type=forking
+User=vagrant
+KillMode=none
+
+ExecStart=/usr/bin/bash /home/vagrant/ansible/autop-listener/grow-ears.sh
+ExecStop=/usr/bin/bash /home/vagrant/ansible/autop-listener/go-deaf.sh
+
+ProtectSystem=full
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+
+[Install]
+WantedBy=multi-user.target
