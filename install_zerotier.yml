@@ -1,0 +1,6 @@
+---
+- name: Install ZeroTier One
+  hosts: all
+  roles:
+    - role: zerotier
+      become: yes
