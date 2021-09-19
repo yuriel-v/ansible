@@ -7,10 +7,14 @@
   when: global_os == 'linux'
   become: yes
   block:
+    - name: Gather distro name fact
+      setup:
+        filter: "ansible_distribution"
+
     - name: "Template greeting to host"
       template:
         src: greeting.sh.j2
-        dest: '/etc/update-motd.d/99-greeting'
+        dest: '{{ "/etc/update-motd.d/99-greeting" if ansible_distribution | lower == "ubuntu" else "/etc/profile.d/greeting.sh" }}' 
         mode: '0755'
 
     - name: "Set hostname"
