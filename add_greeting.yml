@@ -7,6 +7,10 @@
     set_fact:
       global_vm_shortname: "{{ shortname }}"
 
+  - name: Gather ansible_env fact
+    setup:
+      filter: ansible_env
+
   - name: Add default greeting
     become: yes
     block:
@@ -23,6 +27,6 @@
           create: yes
         loop:
           - "/etc/skel/.profile"
-          - "/home/vagrant/.profile"
+          - "{{ ansible_env.HOME }}/.profile"
         loop_control:
           loop_var: profile_path

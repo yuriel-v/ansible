@@ -15,11 +15,11 @@
 
 - name: "Set .bashrc for all users"
   template:
-    src: bashrc.j2
+    src: "bashrc-{{ ansible_distribution | lower }}.j2"
     dest: "{{ global_bashrc_path }}"
   loop:
     - '/etc/skel/.bashrc'
-    - '/home/vagrant/.bashrc'
+    - '{{ ansible_env.HOME }}.bashrc'
   loop_control:
     loop_var: global_bashrc_path
 
@@ -27,5 +27,5 @@
     vars:
       bashrc_user: 'root'
     template:
-      src: bashrc.j2
+      src: "bashrc-{{ ansible_distribution | lower }}.j2"
       dest: '/root/.bashrc'
