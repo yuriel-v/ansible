@@ -16,13 +16,17 @@ global_python_dir: "{{ global_python['url'] | basename | regex_replace('\\.t.*$'
 global_python_latest: "{{ global_python_dir.split('-')[-1] | regex_replace('\\.', '') | int }}"
 
 global_linux_essentials:
-  - g++
-  - gcc
-  - make
-  - tar
-  - zip
-  - unzip
-  - iptables
-  - ufw
-  - tmux
-  - sshpass
+  all:
+    - gcc
+    - make
+    - tar
+    - zip
+    - unzip
+    - iptables
+    - tmux
+  ubuntu:
+    - ufw
+    - g++
+  centos:
+    - gcc-c++
+

@@ -2,7 +2,7 @@
 - name: Install dnsmasq
   package:
     name: dnsmasq
-    state: "{{ 'latest' if 'ubuntu' in ansible_lsb['id'] | lower else 'present' }}"
+    state: present
 
 - name: Disable and stop systemd-resolved service
   ignore_errors: yes

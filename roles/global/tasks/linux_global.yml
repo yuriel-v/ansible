@@ -1,9 +1,17 @@
 ---
-- name: Ensure essential tools are present
+- name: Ensure OS-specific essential tools are present
+  package:
+    name: "{{ global_lx_specific_essential }}"
+    state: present
+  loop: "{{ global_linux_essentials[(ansible_distribution | lower)] }}"
+  loop_control:
+    loop_var: global_lx_specific_essential
+
+- name: Ensure generic essential tools are present
   package:
     name: "{{ global_lx_essential }}"
-    state: "{{ 'latest' if 'ubuntu' in ansible_lsb['id'] | lower else 'present' }}"
-  loop: "{{ global_linux_essentials }}"
+    state: present
+  loop: "{{ global_linux_essentials['all'] }}"
   loop_control:
     loop_var: global_lx_essential
 
@@ -15,33 +23,33 @@
   import_tasks: 'configure_dns.yml'
 
 
-- name: Make sure /etc/boot_scripts exists
-  become: yes
-  file:
-    path: '/etc/boot_scripts'
+#- name: Make sure /etc/boot_scripts exists
+#  become: yes
+#  file:
+#    path: '/etc/boot_scripts'
 
 
-- name: 'Template IP regeneration (DHCP) script for interface #2 to /etc/boot_scripts'
-  become: yes
-  template:
-    src: 'regen-dhcp.sh.j2'
-    dest: '/etc/boot_scripts/regen-dhcp.sh'
-    mode: '0755'
+#- name: 'Template IP regeneration (DHCP) script for interface #2 to /etc/boot_scripts'
+#  become: yes
+#  template:
+#    src: 'regen-dhcp.sh.j2'
+#    dest: '/etc/boot_scripts/regen-dhcp.sh'
+#    mode: '0755'
 
 
-- name: 'Template IP regeneration as a systemd service'
-  become: yes
-  template:
-    src: 'regen-dhcp.service.j2'
-    dest: '/etc/systemd/system/regen-dhcp.service'
-  notify: 'Regenerate IP in 5 seconds'
+#- name: 'Template IP regeneration as a systemd service'
+#  become: yes
+#  template:
+#    src: 'regen-dhcp.service.j2'
+#    dest: '/etc/systemd/system/regen-dhcp.service'
+#  notify: 'Regenerate IP in 5 seconds'
 
 
-- name: Enable IP regeneration service on boot
-  become: yes
-  service:
-    name: regen-dhcp
-    enabled: yes
+#- name: Enable IP regeneration service on boot
+#  become: yes
+#  service:
+#    name: regen-dhcp
+#    enabled: yes
 
 
 - name: Disable IPv6 for good
@@ -50,21 +58,63 @@
     dest: '/etc/default/grub'
     replace: '\1 ipv6.disable=1'
     regexp: '^(GRUB_CMDLINE_LINUX_DEFAULT="[^"]*)'
+  register: global_grub_update
 
 - name: Update grub
+  when:
+    - ansible_distribution | lower == 'ubuntu'
+    - global_grub_update.changed | bool
   become: yes
   shell: 'update-grub'
   changed_when: no
+
+- name: Update grub if CentOS
+  when:
+    - ansible_distribution | lower == "centos"
+    - global_grub_update.changed | bool
+  become: yes
+  block:
+    - name: Stat EFI configuration
+      stat:
+        path: '/etc/grub2-efi.cfg'
+      register: global_grub2_efi
+    
+    - name: Update grub
+      changed_when: no
+      shell: "grub2-mkconfig -o /etc/grub2{{ '-efi' if global_grub2_efi.stat.exists else '' }}.cfg"
+
+    - name: Warn user about reboot
+      debug:
+        msg: "Warning: Ansible will reboot the host in one minute. This might take a bit!"
+
+    - name: Reboot host
+      changed_when: no
+      reboot:
+        pre_reboot_delay: 60
 
 # much simpler python update workaround
 - name: Install Python 3.9
   block:
     - name: Fetch Python package
       package:
-        name: python3.9
-        state: "{{ 'latest' if 'ubuntu' in ansible_lsb['id'] | lower else 'present' }}"
+        name: "{{ global_python_pkg }}"
+        state: present
+      loop:
+        - "{{ 'python3.9' if ansible_distribution | lower == 'ubuntu' else 'python39' }}"
+        - "{{ 'python3.9-venv' if ansible_distribution | lower == 'ubuntu' else 'python39-pip' }}"
+        # above is replaced with a useless package for centOS since the yum package already
+        # allows venvs to be created out of the box
+      loop_control:
+        loop_var: global_python_pkg
 
     - name: Add Python alias to all users
+      when: ansible_distribution | lower == "ubuntu"
       lineinfile:
         path: '/etc/bash.bashrc'
         line: "alias python='/usr/bin/python3.9'"
+
+    - name: Add Python alias to all users
+      when: ansible_distribution | lower == "centos"
+      copy:
+        content: "alias python='/usr/bin/python3.9'"
+        dest: '/etc/profile.d/aliases.sh'
