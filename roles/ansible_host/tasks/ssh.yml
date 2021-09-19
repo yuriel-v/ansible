@@ -1,0 +1,26 @@
+---
+- name: Ensure ansible dir exists for SSH keys
+  file:
+    name: '~/.ssh/ansible'
+    state: directory
+
+- name: Transfer over current private key
+  when: not ans_host_new_pks
+  block:
+    - name: Stat current host's private key
+      delegate_to: localhost
+      stat:
+        path: '~/.ssh/ansible/id_ansible'
+      register: ans_host_current_host_pk
+
+    - name: Copy current private key to target
+      when: ans_host_current_host_pk.stat.exists | bool
+      copy:
+        src: '~/.ssh/ansible/id_ansible'
+        dest: '~/.ssh/ansible/id_ansible'
+
+- name: Create SSH key pair
+  when: ans_host_new_pks | bool or not (ans_host_current_host_pk.stat.exists | default(false))
+  openssh_keypair:
+    path: '~/.ssh/ansible/id_ansible'
+    state: present

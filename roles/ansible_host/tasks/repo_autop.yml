@@ -1,0 +1,24 @@
+---
+- name: Ensure Ansible scripts repo is present
+  retries: 5
+  delay: 3
+  git:
+    accept_hostkey: yes
+    repo: "https://github.com/yuriel-v/ansible.git"
+    dest: "{{ ansible_env.HOME }}/ansible"
+
+- name: Copy autop-listener service to systemd
+  become: yes
+  copy:
+    remote_src: yes
+    src: '~/ansible/autop-listener/autoprovision.service'
+    dest: '/etc/systemd/system/autoprovision.service'
+
+- name: Start and enable autop-listener service
+  become: yes
+  systemd:
+    daemon_reload: yes
+    name: autoprovision
+    state: started
+    enabled: yes
+

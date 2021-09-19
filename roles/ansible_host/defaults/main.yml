@@ -1,0 +1,3 @@
+---
+# defaults file for ansible_host
+ans_host_new_pks: no

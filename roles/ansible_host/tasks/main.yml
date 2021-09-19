@@ -1,0 +1,47 @@
+---
+# tasks file for ansible_host
+- name: Gather ansible distribution fact
+  setup:
+    filter: "ansible_distribution"
+
+- name: Make sure Ansible package is present
+  when: ansible_distribution | lower == 'ubuntu'
+  apt:
+    name: ansible
+    state: latest
+    update_cache: yes
+
+- name: Make sure Ansible package is present
+  when: ansible_distribution | lower == 'centos'
+  yum:
+    name: "{{ ans_host_ansible_package }}"
+    state: latest
+  loop:
+    - epel-release
+    - ansible
+  loop_control:
+    loop_var: ans_host_ansible_package
+
+
+- name: Import SSH key tasks
+  import_tasks: ssh.yml
+
+#- name: Stat Python autop-listener venv in homedir
+#  stat:
+#    path: '~/autop-listener'
+#  register: ans_host_venv_stat
+
+#- name: Create Python virtual environment in homedir
+#  when: not ans_host_venv_stat.stat.exists
+#  shell: "python3.9 -m venv --upgrade-deps {{ ansible_env.HOME }}/autop-listener"
+  
+- name: Install flask in autop-listener venv
+  pip:
+    name: flask
+    state: present
+    virtualenv: "{{ ansible_env.HOME }}/autop-listener"
+    virtualenv_python: python3.9
+
+
+- name: Import Ansible git/autoprovisioner setup tasks
+  import_tasks: repo_autop.yml
