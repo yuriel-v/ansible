@@ -57,7 +57,7 @@ if [ -n "$force_color_prompt" ]; then
 fi
 
 if [ "$color_prompt" = yes ]; then
-    PS1='\[\033[01;{{ "31" if devinstall_bashrc_user | default("any") == "root" else "32" }}m\]\u@\h \[\033[01;36m\]({{ global_vm_shortname }})\[\033[01;37m\]: \[\033[01;34m\]\w \[\033[00m\]\$ '
+    PS1='\[\033[01;{{ "31" if bashrc_user | default("any") == "root" else "32" }}m\]\u@\h \[\033[01;36m\]({{ global_vm_shortname }})\[\033[01;37m\]: \[\033[01;34m\]\w \[\033[00m\]\$ '
 else
     PS1='\u@\h ({{ global_vm_shortname }}): \w \$ '
 fi

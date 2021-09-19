@@ -20,6 +20,12 @@
   loop:
     - '/etc/skel/.bashrc'
     - '/home/vagrant/.bashrc'
-    - '/root/.bashrc'
   loop_control:
     loop_var: global_bashrc_path
+
+  - name: "Set .bashrc for root user"
+    vars:
+      bashrc_user: 'root'
+    template:
+      src: bashrc.j2
+      dest: '/root/.bashrc'

@@ -33,7 +33,7 @@
 
     - name: "Set .bashrc for root user"
       vars:
-        devinstall_bashrc_user: 'root'
+        bashrc_user: 'root'
       template:
         src: bashrc.j2
         dest: '/root/.bashrc'
