@@ -14,8 +14,8 @@
  
     - name: Make sure Desktop GUI packages are present and up to date
       apt:
-        name: 'ubuntu-desktop-minimal'
-        state: latest
+        name: ['lxde', 'lxde-core', 'lxde-icon-theme', 'yaru-theme-gtk', 'yaru-theme-icon']
+        state: present
 
     - name: Import add keys task
       import_tasks: 'add_keys.yml'
