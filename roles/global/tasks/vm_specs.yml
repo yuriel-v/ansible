@@ -1,8 +1,4 @@
 ---
-- name: Gather distro fact
-  setup:
-    filter: "ansible_distribution"
-
 - name: "Template greeting to host"
   template:
     src: greeting.sh.j2

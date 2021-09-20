@@ -1,5 +1,14 @@
 ---
 # tasks file for global
+- name: Gather facts needed
+  setup:
+    filter: "{{ global_fact }}"
+  loop:
+    - ansible_distribution
+    - ansible_env
+  loop_control:
+    loop_var: global_fact
+
 - name: Figure out which OS family we're dealing with
   import_tasks: parse_os.yml
   run_once: true

@@ -1,6 +1,7 @@
 ---
 - name: Global VM provisioning play
   hosts: all
+  gather_facts: no
   vars:
     ansible_user: vagrant
     ansible_ssh_extra_args: '-o StrictHostKeyChecking=no'
@@ -12,11 +13,7 @@
         - template-vm
 
     - role: clone 
-      tags:
-        - general
-        - game-server
-        - dns-server
-        - dev-master
+      when: ('template-vm' not in ansible_run_tags)
     
     - role: dns_server
       tags: dns-server

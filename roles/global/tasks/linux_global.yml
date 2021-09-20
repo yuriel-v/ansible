@@ -24,8 +24,15 @@
   import_tasks: 'configure_dns.yml'
 
 
+- name: Stat ipv6 disable line
+  changed_when: no
+  failed_when: global_grub_stat.rc == 2
+  shell: grep -q "GRUB_CMDLINE_LINUX.*ipv6\.disable=1.*" /etc/default/grub
+  register: global_grub_stat
+
 - name: Disable IPv6 for good
   become: yes
+  when: global_grub_stat.rc == 1
   replace:
     dest: '/etc/default/grub'
     replace: '\1 ipv6.disable=1'
