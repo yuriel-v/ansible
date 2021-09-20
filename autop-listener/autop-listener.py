@@ -18,18 +18,19 @@ def auto_provision():
     try:
         vm_type = req.pop('type')
         vm_ip = req.pop('ip')
-        vm_name = req.pop('name')
-        vm_desc = req.pop('desc')
+        if not isinstance(req['extras'], dict):
+            raise Exception("Invalid extras element type")
+
     except Exception:
         return Response('{"response": "Wrongly formatted request"}', 400)
 
-    req["global_vm_shortname"] = vm_desc
-    req["global_vm_hostname"] = vm_name
-    extra_vars = str(dumps(req)).replace('"', '\\"')
+    req['extras']['global_vm_shortname'] = req['extras'].pop('desc')
+    req['extras']['global_vm_hostname'] = req['extras'].pop('name')
+    extra_vars = str(dumps(req['extras'])).replace('"', '\\"')
 
     ansible_command = "tmux send-keys -t autopshell "
     ansible_command += f"'ansible-playbook {homedir}/ansible/global.yml -i {vm_ip}, --tags \"{vm_type}\" --extra-vars \"{extra_vars}\" "
-    ansible_command += f"| tee {homedir}/log/ansible/{vm_name}-{datetime.now().isoformat()}.log' C-m"
+    ansible_command += f"| tee {homedir}/log/ansible/{req['extras']['global_vm_hostname']}-{datetime.now().isoformat()}.log' C-m"
     os.system(ansible_command)
 
     return jsonify({'response': 'Ansible command fired'})

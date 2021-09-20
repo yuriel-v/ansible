@@ -11,14 +11,16 @@ Method: POST
 Endpoint: /provision
 ```json
 {
-    "name": "vm123",
-    "desc": "Test VM",
     "ip": "172.16.0.1",
     "type": "general",
-    "role_param1": "asdf",
-    "role_param2": "qwerty"
+    "extras": {
+        "name": "vm123",
+        "desc": "Test VM",
+        "role_param1": "asdf",
+        "role_param2": "qwerty"
+    }
 }
 ```
 
 This will launch an Ansible command with the following format:
-`ansible-playbook global.yml -i [ip], --tags [type], --extra-vars "{'role_param1': [role_param1], 'role_param2': [role_param2]}"`
+`ansible-playbook global.yml -i [ip], --tags [type], --extra-vars "{'global_vm_shortname': '[extras.desc]', 'global_vm_hostname': '[extras.name]', 'role_param1': [extras.role_param1], 'role_param2': [extras.role_param2]}"`
