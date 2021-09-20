@@ -29,7 +29,7 @@
   replace:
     dest: '/etc/default/grub'
     replace: '\1 ipv6.disable=1'
-    regexp: '^(GRUB_CMDLINE_LINUX_DEFAULT="[^"]*)'
+    regexp: '^(GRUB_CMDLINE_LINUX{{ "_DEFAULT" if ansible_distribution | lower == "ubuntu" else "" }}="[^"]*)'
   register: global_grub_update
 
 - name: Update grub

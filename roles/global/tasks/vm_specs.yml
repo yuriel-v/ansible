@@ -19,7 +19,7 @@
     dest: "{{ global_bashrc_path }}"
   loop:
     - '/etc/skel/.bashrc'
-    - '{{ ansible_env.HOME }}.bashrc'
+    - '{{ ansible_env.HOME }}/.bashrc'
   loop_control:
     loop_var: global_bashrc_path
 
