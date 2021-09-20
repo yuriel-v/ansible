@@ -23,9 +23,9 @@
   loop_control:
     loop_var: global_bashrc_path
 
-  - name: "Set .bashrc for root user"
-    vars:
-      bashrc_user: 'root'
-    template:
-      src: "bashrc-{{ ansible_distribution | lower }}.j2"
-      dest: '/root/.bashrc'
+- name: "Set .bashrc for root user"
+  vars:
+    bashrc_user: 'root'
+  template:
+    src: "bashrc-{{ ansible_distribution | lower }}.j2"
+    dest: '/root/.bashrc'
