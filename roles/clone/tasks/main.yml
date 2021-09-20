@@ -5,7 +5,6 @@
 
 - name: Do Linux routines
   when: global_os == 'linux'
-  become: yes
   block:
     - name: Gather distro name fact
       setup:
@@ -16,6 +15,7 @@
         filter: ansible_env
 
     - name: "Template greeting to host"
+      become: yes
       template:
         src: greeting.sh.j2
         dest: '{{ "/etc/update-motd.d/99-greeting" if ansible_distribution | lower == "ubuntu" else "/etc/profile.d/greeting.sh" }}' 
@@ -36,13 +36,15 @@
         loop_var: global_bashrc_path
 
     - name: "Set .bashrc for root user"
+      become: yes
       vars:
         bashrc_user: 'root'
       template:
         src: "bashrc-{{ ansible_distribution | lower }}.j2"
         dest: '/root/.bashrc'
 
-    - name: Update aand upgrade packages on Ubuntu
+    - name: Update and upgrade packages on Ubuntu
+      become: yes
       when: ansible_distribution | lower == "ubuntu"
       block:
         - name: Warn user about long task
@@ -55,6 +57,7 @@
             update_cache: yes
     
     - name: Upgrade all packages on CentOS
+      become: yes
       when: ansible_distribution | lower == "centos"
       block:
         - name: Warn user about long task
