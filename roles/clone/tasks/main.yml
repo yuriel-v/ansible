@@ -25,7 +25,8 @@
       hostname:
         name: "{{ global_vm_hostname }}"
 
-    - name: "Set .bashrc for all users"
+    - name: "Set .bashrc for skel and current user"
+      become: "{{ global_bashrc_path == '/etc/skel/.bashrc' }}"
       template:
         src: "bashrc-{{ ansible_distribution | lower }}.j2"
         dest: "{{ global_bashrc_path }}"

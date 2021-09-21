@@ -9,6 +9,7 @@
   
   pre_tasks:
     - name: Ping host
+      ignore_unreachable: yes
       retries: 5
       delay: 10
       ping:
@@ -16,8 +17,7 @@
 
   roles:
     - role: global
-      tags:
-        - template-vm
+      tags: template-vm
 
     - role: clone
       tags: always
