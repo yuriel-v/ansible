@@ -1,0 +1,102 @@
+---
+- name: Stat -4 option
+  changed_when: no
+  failed_when: dns_server_minusfour.rc == 2
+  shell: grep -q "OPTIONS.*-4[^\"]*" /etc/default/named
+  register: dns_server_minusfour
+
+- name: Check if listen-on-v6 is enabled
+  changed_when: no
+  failed_when: dns_server_listenonv6.rc == 2
+  shell: grep -q ".*listen-on-v6.*" /etc/bind/named.conf.options
+  register: dns_server_listenonv6
+
+- name: Check if AAAA on v4 filter is on
+  changed_when: no
+  failed_when: dns_server_aaaaonv4.rc == 2
+  shell: grep -q "^[^/]*filter-aaaa-on-v4 yes;.*" /etc/bind/named.conf.options
+  register: dns_server_aaaaonv4
+
+
+- name: Disable IPv6 all around
+  become: yes
+  block:
+    - name: Add -4 option to /etc/defaults/named
+      when: dns_server_minusfour.rc == 1
+      replace:
+        backup: yes
+        dest: '/etc/default/named'
+        # maybe figure out a better regex if a -b option exists
+        regexp: '^(OPTIONS=[^b]*)'
+        replace: '\1 bind -4"'
+    
+    - name: 'Comment "listen-on-v6" option in named.conf.options'
+      when: dns_server_listenonv6.rc == 0
+      replace:
+        backup: yes
+        dest: '/etc/bind/named.conf.options'
+        regexp: '.*listen-on-v6.*'
+        replace: ''
+    
+    - name: 'Add filter AAAA on v4 = yes to named.conf.options'
+      when: dns_server_aaaaonv4.rc == 1
+      lineinfile:
+        path: '/etc/bind/named.conf.options'
+        line: "        filter-aaaa-on-v4 yes;"
+        insertbefore: '^};$'
+
+
+- name: Configure slave instance
+  when: dns_server_type | lower == 'slave'
+  become: yes
+  block:
+    - name: Template slave zone file
+      template:
+        backup: yes
+        src: 'slave-config.j2'
+        dest: '/var/lib/bind/slave.{{ dns_server_zone }}'
+    
+    - name: Add include to named.conf.local
+      lineinfile:
+        backup: yes
+        path: '/etc/bind/named.conf.local'
+        line: 'include "/var/lib/bind/slave.{{ dns_server_zone }}";'
+        state: present
+
+
+- name: Configure master instance
+  when: dns_server_type | lower == 'master'
+  become: yes
+  block:
+    - name: Make sure reverse dir exists
+      file:
+        path: '/etc/bind/reverse'
+        state: directory
+
+    - name: Template primary records file
+      template:
+        backup: yes
+        src: 'primary-records.j2'
+        dest: '/etc/bind/db.{{ dns_server_zone }}'
+    
+    - name: Template reverse records file
+      template:
+        backup: yes
+        src: 'ptr-records.j2'
+        dest: '/etc/bind/reverse/reverse.{{ dns_server_zone }}'
+    
+    - name: Template master zone file
+      template:
+        backup: yes
+        src: 'master-named.conf.local.j2'
+        dest: '/etc/bind/named.conf.local'
+
+
+- name: Restart BIND9 service and enable it
+  become: yes
+  service:
+    name: bind9
+    state: restarted
+    enabled: yes
+  changed_when: no 
+...

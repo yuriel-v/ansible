@@ -1,0 +1,42 @@
+---
+- name: Template customized named.conf
+  template:
+    backup: yes
+    src: master-centos-named.conf.j2
+    dest: /etc/named.conf
+
+
+- name: Configure master instance
+  when: dns_server_type | lower == 'master'
+  become: yes
+  block:
+    - name: Make sure reverse zones dir exists
+      file:
+        path: /var/named/reverse
+        state: directory
+    
+    - name: Template master zone file
+      template:
+        backup: yes
+        src: master-named.conf.local.j2
+        dest: /var/named/named.conf.local
+    
+    - name: Template forward records
+      template:
+        backup: yes
+        src: primary-records.j2
+        dest: "/var/named/db.{{ dns_server_zone }}"
+    
+    - name: Template reverse records
+      template:
+        backup: yes
+        src: ptr-records.j2
+        dest: "/var/named/reverse/reverse.{{ dns_server_zone }}"
+
+- name: Restart Named service and enable it on boot
+  become: yes
+  changed_when: no
+  service:
+    name: named
+    state: restarted
+    enabled: yes

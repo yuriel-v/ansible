@@ -9,11 +9,11 @@
 // Primary zone
 zone "{{ dns_server_zone }}" IN {
   type master;
-  file "/etc/bind/db.{{ dns_server_zone }}";
+  file "{{ '/etc/bind' if ansible_distribution | lower == 'ubuntu' else '/var/named' }}/db.{{ dns_server_zone }}";
 };
 
 // Reverse zone
 zone "{{ dns_server_reverse_zone }}" IN {
   type master;
-  file "/etc/bind/reverse/reverse.{{ dns_server_zone }}";
+  file "{{ '/etc/bind' if ansible_distribution | lower == 'ubuntu' else '/var/named' }}/reverse/reverse.{{ dns_server_zone }}";
 };
