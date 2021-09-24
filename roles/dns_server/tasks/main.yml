@@ -1,8 +1,13 @@
 ---
 # tasks file for dns_server
-- name: Gather distribution fact
+- name: Gather necessary facts
   setup:
-    filter: ansible_distribution
+    filter: "{{ dns_server_fact }}"
+  loop:
+    - ansible_distribution
+    - ansible_date_time
+  loop_control:
+    loop_var: dns_server_fact
 
 - name: Install BIND
   become: yes
@@ -24,4 +29,7 @@
 
 
 - name: Include distro-specific install tasks
-  import_tasks: "{{ ansible_distribution | lower }}.yml"
+  include_tasks:
+    file: "{{ ansible_distribution | lower }}.yml"
+    apply:
+      become: yes

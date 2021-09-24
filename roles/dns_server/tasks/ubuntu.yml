@@ -18,37 +18,34 @@
   register: dns_server_aaaaonv4
 
 
-- name: Disable IPv6 all around
-  become: yes
-  block:
-    - name: Add -4 option to /etc/defaults/named
-      when: dns_server_minusfour.rc == 1
-      replace:
-        backup: yes
-        dest: '/etc/default/named'
-        # maybe figure out a better regex if a -b option exists
-        regexp: '^(OPTIONS=[^b]*)'
-        replace: '\1 bind -4"'
-    
-    - name: 'Comment "listen-on-v6" option in named.conf.options'
-      when: dns_server_listenonv6.rc == 0
-      replace:
-        backup: yes
-        dest: '/etc/bind/named.conf.options'
-        regexp: '.*listen-on-v6.*'
-        replace: ''
-    
-    - name: 'Add filter AAAA on v4 = yes to named.conf.options'
-      when: dns_server_aaaaonv4.rc == 1
-      lineinfile:
-        path: '/etc/bind/named.conf.options'
-        line: "        filter-aaaa-on-v4 yes;"
-        insertbefore: '^};$'
+# Disable IPv6 all around
+- name: Add -4 option to /etc/defaults/named
+  when: dns_server_minusfour.rc == 1
+  replace:
+    backup: yes
+    dest: '/etc/default/named'
+    # maybe figure out a better regex if a -b option exists
+    regexp: '^(OPTIONS=[^b]*)'
+    replace: '\1 bind -4"'
+
+- name: 'Comment "listen-on-v6" option in named.conf.options'
+  when: dns_server_listenonv6.rc == 0
+  replace:
+    backup: yes
+    dest: '/etc/bind/named.conf.options'
+    regexp: '.*listen-on-v6.*'
+    replace: ''
+
+- name: 'Add filter AAAA on v4 = yes to named.conf.options'
+  when: dns_server_aaaaonv4.rc == 1
+  lineinfile:
+    path: '/etc/bind/named.conf.options'
+    line: "        filter-aaaa-on-v4 yes;"
+    insertbefore: '^};$'
 
 
 - name: Configure slave instance
   when: dns_server_type | lower == 'slave'
-  become: yes
   block:
     - name: Template slave zone file
       template:
@@ -66,7 +63,6 @@
 
 - name: Configure master instance
   when: dns_server_type | lower == 'master'
-  become: yes
   block:
     - name: Make sure reverse dir exists
       file:
@@ -93,7 +89,6 @@
 
 
 - name: Restart BIND9 service and enable it
-  become: yes
   service:
     name: bind9
     state: restarted

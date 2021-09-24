@@ -8,7 +8,6 @@
 
 - name: Configure master instance
   when: dns_server_type | lower == 'master'
-  become: yes
   block:
     - name: Make sure reverse zones dir exists
       file:
@@ -34,7 +33,6 @@
         dest: "/var/named/reverse/reverse.{{ dns_server_zone }}"
 
 - name: Restart Named service and enable it on boot
-  become: yes
   changed_when: no
   service:
     name: named
