@@ -2,18 +2,28 @@
 # defaults file for dns_server
 dns_server_type: 'slave'
 dns_server_zone: 'yuriel.net'
-dns_server_reverse_zone: '0.16.172.in-addr.arpa'
-dns_server_master_ns_name: 'ns1'
+dns_server_reverse_zone: '16.172.in-addr.arpa'
+dns_server_master_ns_name: 'ldap'
 
-# Default records for yurielnet, as defined in the repo https://github.com/yuriel-v/Infrastructure
+# A few default records for yurielnet, as defined in the repo https://github.com/yuriel-v/yurielnet
 # Make sure to override this when implementing your own DNS records!
 dns_server_records:
   - domain: 'yuriel.net.'
     ttl: ''
     type: NS
-    address: 'ns2.yuriel.net.'
+    address: 'ldap.yuriel.net.'
+  
+  - domain: 'yuriel.net.'
+    ttl: ''
+    type: NS
+    address: 'ns1.yuriel.net.'
 
-  - domain: ns2
+  - domain: ldap
+    ttl: '86400'
+    type: A
+    address: '172.16.0.30'
+
+  - domain: ns1
     ttl: '86400'
     type: A
     address: '172.16.0.31'
@@ -26,4 +36,4 @@ dns_server_records:
   - domain: esxi
     ttl: '86400'
     type: A
-    address: '192.168.0.100'
+    address: '172.16.0.101'

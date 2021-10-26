@@ -1,22 +1,27 @@
 ---
 - name: Global VM provisioning play
   hosts: all
+  gather_facts: no
   vars:
     ansible_user: vagrant
     ansible_ssh_extra_args: '-o StrictHostKeyChecking=no'
     ansible_ssh_private_key_file: '/home/vagrant/.ssh/ansible/id_ansible'
+  
+  pre_tasks:
+    - name: Ping host
+      ignore_unreachable: yes
+      retries: 5
+      delay: 10
+      ping:
+      tags: always
 
   roles:
     - role: global
-      tags:
-        - template-vm
+      tags: template-vm
 
-    - role: clone 
-      tags:
-        - general
-        - game-server
-        - dns-server
-        - dev-master
+    - role: clone
+      tags: always
+      when: ('template-vm' not in ansible_run_tags)
     
     - role: dns_server
       tags: dns-server

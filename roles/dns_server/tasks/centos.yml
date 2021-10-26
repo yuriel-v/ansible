@@ -1,0 +1,65 @@
+---
+- name: Template customized named.conf
+  template:
+    backup: yes
+    owner: named
+    group: root
+    src: master-centos-named.conf.j2
+    dest: /etc/named.conf
+
+
+- name: Template master zone file
+  when: dns_server_type | lower == 'master'
+  template:
+    backup: yes
+    owner: named
+    group: root
+    src: master-named.conf.local.j2
+    dest: /var/named/named.conf.local
+
+- name: Template slave zone file
+  when: dns_server_type | lower == 'slave'
+  template:
+    backup: yes
+    owner: named
+    group: root
+    src: slave-named.conf.local.j2
+    dest: "/var/named/named.conf.local"
+    
+
+- name: Template forward records
+  template:
+    backup: yes
+    owner: named
+    group: root
+    src: primary-records.j2
+    dest: "/var/named/{{ 'slaves/' if dns_server_type | lower == 'slave' else '' }}fwd.{{ dns_server_zone }}"
+
+- name: Template reverse records
+  template:
+    backup: yes
+    owner: named
+    group: named
+    src: ptr-records.j2
+    dest: "/var/named/{{ 'slaves/' if dns_server_type | lower == 'slave' else '' }}ptr.{{ dns_server_zone }}"
+
+
+- name: Restart Named service and enable it on boot
+  changed_when: no
+  service:
+    name: named
+    state: restarted
+    enabled: yes
+
+- name: Allow DNS services on firewalld
+  firewalld:
+    service: dns
+    permanent: yes
+    state: enabled
+
+- name: Restart firewalld to apply changes
+  changed_when: no
+  service:
+    name: firewalld
+    state: restarted
+...

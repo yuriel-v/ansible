@@ -2,7 +2,7 @@
 ; BIND data file for local loopback interface
 ;
 $TTL 10800
-{{ dns_server_reverse_zone }}.     IN      SOA     {{ dns_server_master_ns_name }}{{ dns_server_zone }}. hostmaster.{{ dns_server_zone }}. (
+{{ dns_server_reverse_zone }}.     IN      SOA     {{ dns_server_master_ns_name }}.{{ dns_server_zone }}. hostmaster.{{ dns_server_zone }}. (
                                    {{ ansible_date_time['date'] | regex_replace('-', '') }}02      ; Serial (YYYYMMDD##)
                                    {{ dns_server_refresh | default(86400) }}         ; Refresh (default 24H)
                                    {{ dns_server_retry | default(7200) }}          ; Retry (default 2H)
@@ -12,7 +12,7 @@ $TTL 10800
 
 ; Nameserver
 
-{{ dns_server_reverse_zone }}.    IN    NS    {{ dns_server_master_ns_name }}{{ dns_server_zone }}.
+{{ dns_server_reverse_zone }}.    IN    NS    {{ dns_server_master_ns_name }}.{{ dns_server_zone }}.
 {% for record in dns_server_records %}
 {% if (record['address'] | ipaddr('revdns') | string).endswith(dns_server_reverse_zone) %}
 {{ record['address'] | ipaddr('revdns') | replace('.' + dns_server_reverse_zone + '.', '') }}    IN    PTR    {{ record['domain'] }}.{{ dns_server_zone }}.

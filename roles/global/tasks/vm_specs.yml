@@ -1,8 +1,4 @@
 ---
-- name: Gather distro fact
-  setup:
-    filter: "ansible_distribution"
-
 - name: "Template greeting to host"
   template:
     src: greeting.sh.j2
@@ -15,17 +11,17 @@
 
 - name: "Set .bashrc for all users"
   template:
-    src: bashrc.j2
+    src: "bashrc-{{ ansible_distribution | lower }}.j2"
     dest: "{{ global_bashrc_path }}"
   loop:
     - '/etc/skel/.bashrc'
-    - '/home/vagrant/.bashrc'
+    - '{{ ansible_env.HOME }}/.bashrc'
   loop_control:
     loop_var: global_bashrc_path
 
-  - name: "Set .bashrc for root user"
-    vars:
-      bashrc_user: 'root'
-    template:
-      src: bashrc.j2
-      dest: '/root/.bashrc'
+- name: "Set .bashrc for root user"
+  vars:
+    bashrc_user: 'root'
+  template:
+    src: "bashrc-{{ ansible_distribution | lower }}.j2"
+    dest: '/root/.bashrc'

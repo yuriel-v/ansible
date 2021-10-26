@@ -27,5 +27,9 @@ read -r -d '' ynet_greeting << EOF
 yurielnet: Now using machine "{{ global_vm_shortname }}".\n
 EOF
 
-echo -e "$ynet_greeting"
+# Only display this message if the user logging in is not root
+# A greeting is redundant and personally a waste when using "sudo su -" for instance 
+if [[ $EUID -ne 0 ]]; then
+  echo -e "$ynet_greeting"
+fi
 unset ynet_greeting

@@ -2,7 +2,11 @@
 # vars file for dns_server
 
 dns_server_packages:
-  - bind9
-  - bind9utils
-  - bind9-doc
-  - dnsutils
+  ubuntu:
+    - bind9
+    - bind9utils
+    - bind9-doc
+    - dnsutils
+  centos:
+    - bind
+    - bind-utils

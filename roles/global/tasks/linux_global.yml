@@ -1,4 +1,12 @@
 ---
+- name: Ensure generic essential tools are present
+  package:
+    name: "{{ global_lx_essential }}"
+    state: present
+  loop: "{{ global_linux_essentials['all'] }}"
+  loop_control:
+    loop_var: global_lx_essential
+
 - name: Ensure OS-specific essential tools are present
   package:
     name: "{{ global_lx_specific_essential }}"
@@ -7,13 +15,6 @@
   loop_control:
     loop_var: global_lx_specific_essential
 
-- name: Ensure generic essential tools are present
-  package:
-    name: "{{ global_lx_essential }}"
-    state: present
-  loop: "{{ global_linux_essentials['all'] }}"
-  loop_control:
-    loop_var: global_lx_essential
 
 - name: Import VM aesthetic configuration tasks
   import_tasks: 'vm_specs.yml'
@@ -23,41 +24,19 @@
   import_tasks: 'configure_dns.yml'
 
 
-#- name: Make sure /etc/boot_scripts exists
-#  become: yes
-#  file:
-#    path: '/etc/boot_scripts'
-
-
-#- name: 'Template IP regeneration (DHCP) script for interface #2 to /etc/boot_scripts'
-#  become: yes
-#  template:
-#    src: 'regen-dhcp.sh.j2'
-#    dest: '/etc/boot_scripts/regen-dhcp.sh'
-#    mode: '0755'
-
-
-#- name: 'Template IP regeneration as a systemd service'
-#  become: yes
-#  template:
-#    src: 'regen-dhcp.service.j2'
-#    dest: '/etc/systemd/system/regen-dhcp.service'
-#  notify: 'Regenerate IP in 5 seconds'
-
-
-#- name: Enable IP regeneration service on boot
-#  become: yes
-#  service:
-#    name: regen-dhcp
-#    enabled: yes
-
+- name: Stat ipv6 disable line
+  changed_when: no
+  failed_when: global_grub_stat.rc == 2
+  shell: grep -q "GRUB_CMDLINE_LINUX.*ipv6\.disable=1.*" /etc/default/grub
+  register: global_grub_stat
 
 - name: Disable IPv6 for good
   become: yes
+  when: global_grub_stat.rc == 1
   replace:
     dest: '/etc/default/grub'
     replace: '\1 ipv6.disable=1'
-    regexp: '^(GRUB_CMDLINE_LINUX_DEFAULT="[^"]*)'
+    regexp: '^(GRUB_CMDLINE_LINUX{{ "_DEFAULT" if ansible_distribution | lower == "ubuntu" else "" }}="[^"]*)'
   register: global_grub_update
 
 - name: Update grub
@@ -91,6 +70,7 @@
       changed_when: no
       reboot:
         pre_reboot_delay: 60
+
 
 # much simpler python update workaround
 - name: Install Python 3.9

@@ -5,44 +5,68 @@
 
 - name: Do Linux routines
   when: global_os == 'linux'
-  become: yes
   block:
     - name: Gather distro name fact
       setup:
         filter: "ansible_distribution"
+    
+    - name: Gather environment variables fact
+      setup:
+        filter: ansible_env
 
     - name: "Template greeting to host"
+      become: yes
       template:
         src: greeting.sh.j2
-        dest: '{{ "/etc/update-motd.d/99-greeting" if ansible_distribution | lower == "ubuntu" else "/etc/profile.d/greeting.sh" }}' 
+        dest: '{{ "/etc/update-motd.d/99-greeting" if ansible_distribution | lower in ["ubuntu", "linux mint"] else "/etc/profile.d/greeting.sh" }}' 
         mode: '0755'
 
     - name: "Set hostname"
       hostname:
         name: "{{ global_vm_hostname }}"
 
-    - name: "Set .bashrc for all users"
+    - name: "Set .bashrc for skel and current user"
+      become: "{{ global_bashrc_path == '/etc/skel/.bashrc' }}"
       template:
-        src: bashrc.j2
+        src: "bashrc-{{ ansible_distribution | lower }}.j2"
         dest: "{{ global_bashrc_path }}"
       loop:
         - '/etc/skel/.bashrc'
-        - '/home/vagrant/.bashrc'
+        - '{{ ansible_env.HOME }}/.bashrc'
       loop_control:
         loop_var: global_bashrc_path
 
     - name: "Set .bashrc for root user"
+      become: yes
       vars:
         bashrc_user: 'root'
       template:
-        src: bashrc.j2
+        src: "bashrc-{{ ansible_distribution | lower }}.j2"
         dest: '/root/.bashrc'
-   
-    - name: Warn user about long task
-      debug:
-        msg: "Warning: Ansible will now update apt cache and upgrade all the packages it can. This might take a while!"
 
-    - name: Update apt cache and upgrade all packages
-      apt:
-        upgrade: 'safe'
-        update_cache: yes
+    - name: Update and upgrade packages on Ubuntu/Mint
+      become: yes
+      when: ansible_distribution | lower in ["ubuntu", "linux mint"]
+      block:
+        - name: Warn user about long task
+          debug:
+            msg: "Warning: Ansible will now update apt cache and upgrade all the packages it can. This might take a while!"
+
+        - name: Update apt cache and upgrade all packages
+          apt:
+            upgrade: 'safe'
+            update_cache: yes
+    
+    - name: Upgrade all packages on CentOS
+      become: yes
+      when: ansible_distribution | lower == "centos"
+      block:
+        - name: Warn user about long task
+          debug:
+            msg: "Warning: Ansible will now upgrade all the packages it can. This might take a while!"
+        
+        - name: Upgrade all packages, except Kernel
+          yum:
+            name: '*'
+            state: latest
+            exclude: kernel*

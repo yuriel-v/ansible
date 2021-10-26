@@ -24,9 +24,11 @@ global_linux_essentials:
     - unzip
     - iptables
     - tmux
+    - wget
   ubuntu:
     - ufw
     - g++
   centos:
     - gcc-c++
+    - bind-utils  # dig
 

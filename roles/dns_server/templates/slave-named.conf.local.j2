@@ -1,0 +1,17 @@
+// Primary zone
+zone "{{ dns_server_zone }}" IN {
+    type slave;
+    file "{{ '/var/lib/bind' if ansible_distribution | lower == 'ubuntu' else '/var/named/slaves' }}/fwd.{{ dns_server_zone }}";
+    masters { {{ '; '.join(dns_server_masters) }}; };
+        allow-transfer { none; };
+    allow-notify { 127.0.0.1; {{ '; '.join(dns_server_masters) }}; {{ ansible_eth1.ipv4.address | default('127.0.0.2') }};  };
+};
+
+// Reverse zone
+zone "{{ dns_server_reverse_zone }}" IN {
+    type slave;
+    file "{{ '/var/lib/bind' if ansible_distribution | lower == 'ubuntu' else '/var/named/slaves' }}/ptr.{{ dns_server_zone }}";
+    masters { {{ '; '.join(dns_server_masters) }}; };
+        allow-transfer { none; };
+    allow-notify { 127.0.0.1; {{ '; '.join(dns_server_masters) }}; {{ ansible_eth1.ipv4.address | default('127.0.0.2') }};  };
+};
