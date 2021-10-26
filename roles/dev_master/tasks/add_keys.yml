@@ -1,8 +1,7 @@
 ---
-- name: Fail on undefined codename
-  fail:
-    msg: "Undefined codename"
-  when: devinstall_codename == "Undefined!"
+- name: Find codename
+  set_fact:
+    devinstall_codename: "{{ lookup('ini', 'UBUNTU_CODENAME type=properties file=/etc/os-release') }}"
 
 - name: Add keys
   apt_key:

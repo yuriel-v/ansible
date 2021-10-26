@@ -18,7 +18,7 @@
       become: yes
       template:
         src: greeting.sh.j2
-        dest: '{{ "/etc/update-motd.d/99-greeting" if ansible_distribution | lower == "ubuntu" else "/etc/profile.d/greeting.sh" }}' 
+        dest: '{{ "/etc/update-motd.d/99-greeting" if ansible_distribution | lower in ["ubuntu", "linux mint"] else "/etc/profile.d/greeting.sh" }}' 
         mode: '0755'
 
     - name: "Set hostname"
@@ -44,9 +44,9 @@
         src: "bashrc-{{ ansible_distribution | lower }}.j2"
         dest: '/root/.bashrc'
 
-    - name: Update and upgrade packages on Ubuntu
+    - name: Update and upgrade packages on Ubuntu/Mint
       become: yes
-      when: ansible_distribution | lower == "ubuntu"
+      when: ansible_distribution | lower in ["ubuntu", "linux mint"]
       block:
         - name: Warn user about long task
           debug:

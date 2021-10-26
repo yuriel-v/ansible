@@ -1,18 +1,21 @@
 ---
-- name: Fail on non-Ubuntu host
-  fail:
-    msg: This role only supports Ubuntu hosts
-  when: ansible_lsb['id'] | lower != "ubuntu"
+- name: Assert that we're running on a supported host
+  assert:
+    that: ansible_distribution | lower in ["ubuntu", "linux mint"]
+    quiet: yes
+    fail_msg: "Unsupported OS ({{ ansible_distribution }}), only Ubuntu and Linux Mint are supported!"
 
 - name: Import tasks
   when: not devinstall_skiptovscode is defined or not devinstall_skiptovscode
   become: yes
   block:
     - name: Warn user about long setup
+      when: devinstall_add_lxde | default(true) | bool
       debug:
         msg: 'Warning: Ansible will now install Desktop packages. This will take a while!'
  
     - name: Make sure Desktop GUI packages are present and up to date
+      when: devinstall_add_lxde | default(true) | bool
       apt:
         name: ['lxde', 'lxde-core', 'lxde-icon-theme', 'yaru-theme-gtk', 'yaru-theme-icon']
         state: present
