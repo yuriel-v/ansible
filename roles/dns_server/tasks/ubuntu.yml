@@ -50,7 +50,7 @@
     - name: Template slave zone file
       template:
         backup: yes
-        src: 'slave-config.j2'
+        src: 'slave-named.conf.local.j2'
         dest: '/var/lib/bind/slave.{{ dns_server_zone }}'
     
     - name: Add include to named.conf.local
@@ -64,22 +64,17 @@
 - name: Configure master instance
   when: dns_server_type | lower == 'master'
   block:
-    - name: Make sure reverse dir exists
-      file:
-        path: '/etc/bind/reverse'
-        state: directory
-
     - name: Template primary records file
       template:
         backup: yes
         src: 'primary-records.j2'
-        dest: '/etc/bind/db.{{ dns_server_zone }}'
+        dest: '/etc/bind/fwd.{{ dns_server_zone }}'
     
     - name: Template reverse records file
       template:
         backup: yes
         src: 'ptr-records.j2'
-        dest: '/etc/bind/reverse/reverse.{{ dns_server_zone }}'
+        dest: '/etc/bind/ptr.{{ dns_server_zone }}'
     
     - name: Template master zone file
       template:

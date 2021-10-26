@@ -1,7 +1,0 @@
-zone "{{ dns_server_zone }}" IN {
-    type slave;
-    file "/var/lib/bind/db.{{ dns_server_zone }}";
-    masters { {{ '; '.join(dns_server_masters) }}; };
-        allow-transfer { none; };
-    allow-notify { 127.0.0.1; {{ '; '.join(dns_server_masters) }}; {{ ansible_eth1.ipv4.address | default('127.0.0.2') }};  };
-};
