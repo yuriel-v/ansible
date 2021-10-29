@@ -18,7 +18,7 @@
       become: yes
       template:
         src: greeting.sh.j2
-        dest: '{{ "/etc/update-motd.d/99-greeting" if ansible_distribution | lower in ["ubuntu", "linux mint"] else "/etc/profile.d/greeting.sh" }}' 
+        dest: '{{ "/etc/update-motd.d/99-greeting" if ansible_distribution | lower in ["ubuntu", "linux mint"] else "/etc/profile.d/99-greeting.sh" }}' 
         mode: '0755'
 
     - name: "Set hostname"
