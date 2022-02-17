@@ -1,10 +1,14 @@
 ---
-devinstall_codename: "{{ ansible_lsb['codename'] | default('Undefined!') }}"
+# lookup doesn't work anymore for some fucking reason, use tasks
+#devinstall_codename: "{{ lookup('ini', 'UBUNTU_CODENAME type=properties file=/etc/os-release') }}"
 
 devinstall_repos:
   adoptopenjdk:
     - 'https://adoptopenjdk.jfrog.io/adoptopenjdk/api/gpg/key/public'  # key
     - "https://adoptopenjdk.jfrog.io/adoptopenjdk/deb {{ devinstall_codename }} main"  # dl
+  vagrant:
+    - 'https://apt.releases.hashicorp.com/gpg'
+    - "[arch=amd64] https://apt.releases.hashicorp.com {{ devinstall_codename }} main"
 
 devinstall_packages:
   apt:

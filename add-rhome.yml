@@ -1,0 +1,41 @@
+- name: Mount NFS remote home "/rhome" on all machines
+  hosts: "{{ 'linux' if 'linux' in groups else 'all' }}"
+  gather_facts: no
+  vars:
+    nfs_server_address: '172.16.0.6'
+    nfs_server_path: '/mnt/nfs_shares/rhome'
+    nfs_client_path: '/rhome'
+
+  tasks:
+    - name: Gather OS family fact
+      setup:
+        filter: ansible_os_family
+
+    - name: Install NFS mount package
+      become: yes
+      when: ansible_os_family == "RedHat"
+      yum:
+        name: nfs-utils
+        state: present
+
+    - name: Install NFS mount package
+      become: yes
+      when: ansible_os_family == "Debian"
+      apt:
+        pkg: nfs-common
+        state: present
+
+    - name: Ensure NFS4 ACL tools package is present
+      become: yes
+      package:
+        name: nfs4-acl-tools
+        state: present
+
+    - name: Mount NFS directory
+      become: yes
+      mount:
+        fstype: nfs
+        name: "{{ nfs_client_path }}"
+        opts: "vers=4"
+        src: "{{ nfs_server_address }}:{{ nfs_server_path }}"
+        state: mounted

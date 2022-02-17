@@ -1,4 +1,7 @@
 ---
+# If a ZeroTier network is to be joined immediately after install,
+# pass on the extra var "zt_network", its value being the network ID to join.
+
 - name: Install ZeroTier One
   hosts: all
   roles:

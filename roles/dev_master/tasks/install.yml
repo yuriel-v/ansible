@@ -11,11 +11,16 @@
 
 - name: Install apt packages
   apt:
-    name: "{{ devinstall_packages['apt'] }}"
+    name: "{{ devinstall_apt_pkg }}"
     state: latest
   when: devinstall_packages['apt'] != []
   retries: 3
   delay: 10
+
+  # place in a loop so we can keep track of what was installed
+  loop: "{{ devinstall_packages['apt'] | list }}"
+  loop_control:
+    loop_var: "devinstall_apt_pkg"
 
 - name: Install deb packages
   apt:

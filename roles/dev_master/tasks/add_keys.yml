@@ -1,7 +1,12 @@
 ---
-- name: Find codename
+- name: Get codename from shell
+  changed_when: no
+  shell: "cat /etc/os-release | grep '^UBUNTU_CODENAME=' | grep -o '[^=]*$'"
+  register: devinstall_codename_shell
+
+- name: Set codename fact
   set_fact:
-    devinstall_codename: "{{ lookup('ini', 'UBUNTU_CODENAME type=properties file=/etc/os-release') }}"
+    devinstall_codename: "{{ devinstall_codename_shell.stdout }}"
 
 - name: Add keys
   apt_key:

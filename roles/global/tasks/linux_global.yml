@@ -11,7 +11,7 @@
   package:
     name: "{{ global_lx_specific_essential }}"
     state: present
-  loop: "{{ global_linux_essentials[(ansible_distribution | lower)] }}"
+  loop: "{{ global_linux_essentials[('ubuntu' if ansible_distribution | lower in ['ubuntu', 'linux mint'] else ansible_distribution | lower)] }}"
   loop_control:
     loop_var: global_lx_specific_essential
 
@@ -80,15 +80,15 @@
         name: "{{ global_python_pkg }}"
         state: present
       loop:
-        - "{{ 'python3.9' if ansible_distribution | lower == 'ubuntu' else 'python39' }}"
-        - "{{ 'python3.9-venv' if ansible_distribution | lower == 'ubuntu' else 'python39-pip' }}"
+        - "{{ 'python3.9' if ansible_distribution | lower in ['ubuntu', 'linux mint'] else 'python39' }}"
+        - "{{ 'python3.9-venv' if ansible_distribution | lower in ['ubuntu', 'linux mint'] else 'python39-pip' }}"
         # above is replaced with a useless package for centOS since the yum package already
         # allows venvs to be created out of the box
       loop_control:
         loop_var: global_python_pkg
 
     - name: Add Python alias to all users
-      when: ansible_distribution | lower == "ubuntu"
+      when: ansible_distribution | lower in ["ubuntu", "linux mint"]
       lineinfile:
         path: '/etc/bash.bashrc'
         line: "alias python='/usr/bin/python3.9'"

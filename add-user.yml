@@ -1,0 +1,70 @@
+---
+# Add user playbook
+# WARNING: Potential security risk!
+# It is recommended that this file only belongs to the 'root' user and group
+# as well as having mode 0600 (+rw for root, nothing for group/others) in order
+# to prevent misuse/unauthorized use of this file!
+
+- name: Add user to all hosts
+  hosts: "{{ 'linux' if 'linux' in groups else 'all' }}"
+  gather_facts: no
+  vars_prompt:
+    - name: username
+      prompt: "Username to create"
+      private: no
+
+    - name: user_password
+      prompt: "User password"
+      unsafe: yes
+      private: yes
+      confirm: yes
+      encrypt: sha512_crypt
+
+    - name: root_usr
+      prompt: "Root user? ('yes'/'no')"
+      private: no
+
+  tasks:
+    - name: Ping hosts
+      retries: 5
+      delay: 1
+      ignore_unreachable: yes
+      ping:
+
+    - name: Check if user homedir exists in /rhome
+      stat:
+        path: "/rhome/{{ username }}"
+      register: rhomedir
+
+    - name: Make sure we have a 'wheel' and 'sudo' group
+      # makes it distro-agnostic, since Ubuntu has the sudo group but CentOS has wheel
+      become: yes
+      group:
+        name: "{{ sudoer_group }}"
+        state: present
+      loop: ['sudo', 'wheel']
+      loop_control:
+        loop_var: "sudoer_group"
+
+    - name: Allow 'wheel' and 'sudo' group to have password-less sudo
+      become: yes
+      copy:
+        content: "%{{ sudoer_group2 }}  ALL=(ALL)  NOPASSWD: ALL"
+        dest: "/etc/sudoers.d/{{ sudoer_group2 }}"
+      loop: ['sudo', 'wheel']
+      loop_control:
+        loop_var: "sudoer_group2"
+
+
+    - name: Create user
+      become: yes
+      user:
+        name: "{{ username }}"
+        password: "{{ user_password }}"
+        create_home: "{{ not rhomedir.stat.exists }}"
+        home: "/rhome/{{ username }}"
+        shell: '/bin/bash'
+        groups: "{{ ['wheel', 'sudo'] if root_usr == 'yes' else [] }}"
+        update_password: on_create
+        state: present
+

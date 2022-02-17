@@ -1,0 +1,19 @@
+---
+- name: Add user-specific VSCode extensions
+  hosts: all
+  gather_facts: no
+  vars_prompt:
+    - name: devinstall_vscode_user
+      prompt: Which user should the VSCode extensions be installed to?
+      private: no
+      default: 'vagrant'
+
+  pre_tasks:
+    - name: Gather required facts
+      setup:
+        filter: ansible_distribution
+
+  roles:
+    - role: dev_master
+      vars:
+        devinstall_skiptovscode: yes
