@@ -12,7 +12,8 @@ homedir = os.getenv('HOME')
 
 @app.route('/provision', methods=['POST'])
 def auto_provision():
-    Path(f'{homedir}/log/ansible').mkdir(parents=True, exist_ok=True)
+    #Path(f'{homedir}/log/ansible').mkdir(parents=True, exist_ok=True)
+    log_path = "/var/log/ansible/deploy"  # trailing slashes might fuck this up
     req = request.get_json()
 
     try:
@@ -30,7 +31,7 @@ def auto_provision():
 
     ansible_command = "tmux send-keys -t autopshell "
     ansible_command += f"'ansible-playbook {homedir}/ansible/global.yml -i {vm_ip}, --tags \"{vm_type}\" --extra-vars \"{extra_vars}\" "
-    ansible_command += f"| tee {homedir}/log/ansible/{req['extras']['global_vm_hostname']}-{datetime.now().isoformat()}.log' C-m"
+    ansible_command += f"| tee {log_path}/{req['extras']['global_vm_hostname']}-{datetime.now().isoformat()}.log' C-m"
     os.system(ansible_command)
 
     return jsonify({'response': 'Ansible command fired'})

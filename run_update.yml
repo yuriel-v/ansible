@@ -1,0 +1,36 @@
+---
+# Update playbook
+# Updates Debian-based systems or CentOS through apt or dnf managers.
+# Intended to be ran monthly at least.
+- name: Update all packages
+  hosts: "{{ 'linux' if 'linux' in groups else 'all' }}"
+  gather_facts: no
+  strategy: free
+  tasks:
+    - name: Gather OS family fact
+      setup:
+        filter: ansible_os_family
+    
+    - name: Assert that we're running on Ubuntu or CentOS
+      assert:
+        that: ansible_os_family in ['RedHat', 'Debian']
+        quiet: yes
+    
+    - name: Run as root
+      become: yes
+      block:
+        - name: "Update CentOS"  # This assumes that we're not running on RHEL!
+          when: ansible_os_family == 'RedHat'
+          dnf:
+            name: '*'
+            state: latest
+            update_cache: yes
+            update_only: yes
+        
+        - name: Update Ubuntu/Mint
+          when: ansible_os_family == 'Debian'
+          apt:
+            name: '*'
+            state: latest
+            update_cache: yes
+...
