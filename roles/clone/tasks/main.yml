@@ -66,7 +66,16 @@
             msg: "Warning: Ansible will now upgrade all the packages it can. This might take a while!"
         
         - name: Upgrade all packages, except Kernel
-          yum:
+          dnf:
             name: '*'
             state: latest
             exclude: kernel*
+            skip_broken: yes
+            update_cache: yes
+      rescue:
+        - name: DNF update failed, try with nobest through shell
+          failed_when: clone_dnf_shell.rc not in [0, 1]
+          shell: "dnf upgrade -y --nobest --skip-broken --exclude=kernel*"
+          register: clone_dnf_shell
+          warn: no
+
