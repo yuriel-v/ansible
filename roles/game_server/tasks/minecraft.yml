@@ -14,8 +14,19 @@
   set_fact:
     gs_mc_java: "{{ 'Undefined' if gs_mc_jvers.rc == 127 else gs_mc_jvers['stdout_lines'][0] | regex_search(\" [^ ' ']*\") | trim }}"
 
+- name: Gather essential facts
+  setup:
+    filter: "{{ gs_mc_fact }}"
+  loop:
+    - ansible_os_family
+    - ansible_date_time
+  loop_control:
+    loop_var: gs_mc_fact
+
 - name: Add AdoptOpenJDK repos when applicable
-  when: gs_mc_jvers.rc == 127
+  when:
+    - gs_mc_jvers.rc == 127
+    - ansible_os_family == "Debian"
   become: yes
   block:
     - name: Add AdoptOpenJDK GPG key
@@ -30,21 +41,32 @@
         update_cache: yes
 
 - name: Install Java 16
-  when: not gs_mc_java.startswith('16')
+  when: not (gs_mc_java.startswith('16') or gs_mc_java.startswith('11'))
   become: yes
   block:
-    - name: Remove old Java installs
-      when: gs_mc_java != 'Undefined'
-      apt:
-        name: "*jdk*"
-        state: absent
+    - name: Install on Ubuntu
+      when: ansible_os_family == "Debian"
+      block:
+        - name: Remove old Java installs
+          when: gs_mc_java != 'Undefined'
+          apt:
+            name: "*jdk*"
+            state: absent
     
-    - name: Install Java Runtime Environment
+        - name: Install Java Runtime Environment
+          vars:
+            gs_mc_is_vanilla: "{{ gs_mc_link is not defined or (gs_mc_link.startswith('https://launcher.mojang.com')) }}"
+          apt:
+            name: "adoptopenjdk-{{ '16' if gs_mc_is_vanilla else '11' }}-openj9-jre"
+            state: present
+
+    - name: Install on CentOS
+      when: ansible_os_family == "RedHat"
       vars:
         gs_mc_is_vanilla: "{{ gs_mc_link is not defined or (gs_mc_link.startswith('https://launcher.mojang.com')) }}"
-      apt:
-        name: "adoptopenjdk-{{ '16' if gs_mc_is_vanilla else '11' }}-openj9-jre"
-        state: present
+      dnf:
+        name: "java-{{ '16' if gs_mc_is_vanilla else '11' }}-openjdk-headless"
+        state: latest
 
 - name: Install Minecraft dedicated server
   when: gs_overwrite != false or not gs_mc_installation.stat.exists
