@@ -1,6 +1,6 @@
 # Ansible
-This is a repository of roles and playbooks used by Ansible in my own home's infrastructure. \
-More information on the infrastructure itself can be found [here](https://github.com/yuriel-v/Infrastructure).
+This is a repository of roles and playbooks used by Ansible in my yurielnet. \
+More information on the infrastructure itself can be found [here](https://github.com/yuriel-v/yurielnet).
 
 ## Roles
 
@@ -18,10 +18,12 @@ Provisioning role for a desktop development VM. \
 
 Provisioning role for a game server. Currently implemented servers:
 - Terraria
+- Minecraft (vanilla and modded)
 
 Games to be supported in the future:
-- Minecraft (vanilla and modded)
-- Starbound
+- Starbound (unlikely)
+- Factorio
+- Satisfactory
 
 [More information.](roles/game_server/README.md)
 
