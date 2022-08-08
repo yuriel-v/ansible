@@ -76,6 +76,7 @@
         - name: DNF update failed, try with nobest through shell
           failed_when: clone_dnf_shell.rc not in [0, 1]
           shell: "dnf upgrade -y --nobest --skip-broken --exclude=kernel*"
+          args:
+            warn: no
           register: clone_dnf_shell
-          warn: no
 

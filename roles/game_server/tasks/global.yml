@@ -12,7 +12,7 @@
     - not gs_install_zerotier
     - gs_server_ip != "update"
   assert:
-    that: gs_server_ip | ipv4('address') | bool
+    that: gs_server_ip | ipv4('address')
     quiet: yes
     fail_msg: "This role requires either that ZeroTier gets installed or that you provide it a valid IP to bind the server to"
 
