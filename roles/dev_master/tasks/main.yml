@@ -14,12 +14,12 @@
         filter: ansible_os_family
 
     - name: Warn user about long setup
-      when: devinstall_add_lxde | default(true) | bool
+      when: devinstall_add_lxde | default(ansible_distribution | lower == "ubuntu") | bool
       debug:
         msg: 'Warning: Ansible will now install Desktop packages. This will take a while!'
  
     - name: Make sure Desktop GUI packages are present and up to date
-      when: devinstall_add_lxde | default(true) | bool
+      when: devinstall_add_lxde | default(ansible_distribution | lower == "ubuntu") | bool
       apt:
         name: ['lxde', 'lxde-core', 'lxde-icon-theme', 'yaru-theme-gtk', 'yaru-theme-icon']
         state: present

@@ -18,9 +18,9 @@
 
 - name: Add repos
   apt_repository:
-    repo: "deb {{ devinstall_key2.value[1] }}"
-    filename: "{{ devinstall_key2.key }}"
+    repo: "deb {{ devinstall_repo.value[1] }}"
+    filename: "{{ devinstall_repo.key }}"
     update_cache: no
   loop: "{{ devinstall_repos | dict2items }}"
   loop_control:
-    loop_var: devinstall_key2
+    loop_var: devinstall_repo

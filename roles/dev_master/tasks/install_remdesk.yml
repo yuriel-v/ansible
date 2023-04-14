@@ -92,6 +92,7 @@
       notify: "Enable UFW"
     
     - name: '(UFW) Allow VNC/RDP only from internal networks'
+      when: devinstall_remdesk | lower in ["rdp", "vnc"]
       ufw:
         rule: allow
         port: '{{ "5900:5901" if devinstall_remdesk | lower == "vnc" else "3389" }}'
