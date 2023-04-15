@@ -1,3 +1,4 @@
+#!/bin/bash
 interface=`ip addr | grep -o '^2: [^:]*' | grep -o "[^' ']*$"`
 
 echo "Releasing lease on interface $interface"

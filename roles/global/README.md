@@ -1,38 +1,51 @@
-Role Name
-=========
+# global: Yurielnet template setup role
 
-A brief description of the role goes here.
+This role configures fresh CentOS and Ubuntu installs into proper templates for yurielnet.
+- The following essentials are installed:
+  - gcc
+  - make
+  - tar
+  - zip
+  - unzip
+  - iptables
+  - tmux
+  - wget
+- On Ubuntu:
+  - ufw
+  - g++
+- On CentOS:
+  - gcc-c++ (a.k.a. g++)
+  - bind-utils (for the dig command)
 
-Requirements
-------------
+IPv6 is also disabled at grub level by this role, and Python 3.9 is installed as well.
 
-Any pre-requisites that may not be covered by Ansible itself or the role should be mentioned here. For instance, if the role uses the EC2 module, it may be a good idea to mention in this section that the boto package is required.
+## Requirements
 
-Role Variables
---------------
+None.
 
-A description of the settable variables for this role should go here, including any variables that are in defaults/main.yml, vars/main.yml, and any variables that can/should be set via parameters to the role. Any variables that are read from other roles and/or the global scope (ie. hostvars, group vars, etc.) should be mentioned here as well.
+## Dependencies
 
-Dependencies
-------------
+None.
 
-A list of other roles hosted on Galaxy should go here, plus any details in regards to parameters that may need to be set for other roles, or variables that are used from other roles.
+## Role variables
 
-Example Playbook
-----------------
+- (string) `global_vm_hostname`: The machine's hostname. Yurielnet's standard is `"vmXXX"`, with each `X` being a number, ranging from 001 to 999.
+- (string) `global_vm_shortname`: A human readable, short name for the machine's terminal prompt. Overridden by the role `clone`.
 
-Including an example of how to use your role (for instance, with variables passed in as parameters) is always nice for users too:
+## Example Playbook
+```
+- hosts: servers
+  roles:
+    - role: global
+      become: yes
+      vars:
+        global_vm_hostname: vm000
+        global_vm_shortname: Test VM
+```
+## License
 
-    - hosts: servers
-      roles:
-         - { role: username.rolename, x: 42 }
+MIT License
 
-License
--------
+## Author
 
-BSD
-
-Author Information
-------------------
-
-An optional section for the role authors to include contact information, or a website (HTML is not allowed).
+It's a me, [Leonardo "Yuriel" Valim](mailto:emberbec@gmail.com)
