@@ -3,7 +3,8 @@
   gather_facts: no
   vars:
     nfs_server_address: '172.16.0.6'
-    nfs_server_path: '/mnt/nfs_shares/rhome'
+    nfs_server_path: '/nfs/rhome'
+    nfs_old_server_path: '/mnt/nfs_shares/rhome'
     nfs_client_path: '/rhome'
 
   tasks:
@@ -11,14 +12,14 @@
       setup:
         filter: ansible_os_family
 
-    - name: Install NFS mount package
+    - name: Install NFS mount package on Fedora-based OS's
       become: yes
       when: ansible_os_family == "RedHat"
       yum:
         name: nfs-utils
         state: present
 
-    - name: Install NFS mount package
+    - name: Install NFS mount package on Debian-based OS's
       become: yes
       when: ansible_os_family == "Debian"
       apt:
@@ -30,6 +31,15 @@
       package:
         name: nfs4-acl-tools
         state: present
+
+    - name: Unmount old NFS directory, if present
+      become: yes
+      mount:
+        fstype: nfs
+        name: "{{ nfs_client_path }}"
+        opts: "vers=4"
+        src: "{{ nfs_server_address }}:{{ nfs_old_server_path }}"
+        state: absent
 
     - name: Mount NFS directory
       become: yes
